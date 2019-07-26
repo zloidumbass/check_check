@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:check_check/data/static_variable.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' show get;
+import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class CheckData {
@@ -178,7 +178,7 @@ class CheckPageState extends State<CheckPage> {
   Future<List<CheckData>> downloadCheckData() async {
     final jsonEndpoint = '${ServerUrl}/odata/standard.odata/InformationRegister_ДанныеQRкодов?%24format=json&%24filter=Пользователь%20eq%20guid%27${UserUID}%27';
     try {
-      final response = await get(jsonEndpoint,headers: {
+      final response = await http.get(jsonEndpoint,headers: {
         'Authorization': 'Basic YXBpOmFwaQ=='
       });
       if (response.statusCode == 200) {
