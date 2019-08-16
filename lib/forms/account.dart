@@ -17,12 +17,12 @@ class AccountData {
   });
   factory AccountData.fromJson(Map<String, dynamic> jsonData) {
     return AccountData(
-      ref: jsonData['Ref'],
-      full_name: jsonData['Description'],
+      ref: jsonData['Ссылка_Key'],
+      full_name: jsonData['Ссылка'],
       pol: jsonData['Пол'],
       snils: jsonData['СНИЛС'],
-      car_uid: jsonData['ОсновнойАвтомобиль'],
-      car: jsonData['ОсновнойАвтомобильПредставление']
+      car_uid: jsonData['ОсновнойАвтомобиль_Key'],
+      car: jsonData['ОсновнойАвтомобиль']
     );
   }
 }
@@ -36,8 +36,8 @@ class CarData {
   });
   factory CarData.fromJson(Map<String, dynamic> jsonData) {
     return CarData(
-        car_uid: jsonData['Ref_Key'],
-        car: jsonData['Description']
+        car_uid: jsonData['Ссылка_Key'],
+        car: jsonData['Ссылка']
     );
   }
 }
@@ -65,7 +65,7 @@ class AccountPageState extends State<AccountPage> {
           body: '{"individual":"${account_data.ref}","car":"${account_data.car_uid}"}',
           headers: {
             'content-type': 'application/json',
-            'Authorization': 'Basic YXBpOmFwaQ=='
+            'Authorization': 'Basic ${AuthorizationString}'
           }
       );
       if (response.statusCode == 200) {
@@ -88,25 +88,28 @@ class AccountPageState extends State<AccountPage> {
     final jsonEndpoint_account = '${ServerUrl}/hs/mobilecheckcheck/account?user=${UserUID}';
     try {
       final response = await http.get(jsonEndpoint_account,headers: {
-        'Authorization': 'Basic YXBpOmFwaQ=='
+        'Authorization': 'Basic ${AuthorizationString}'
       });
       if (response.statusCode == 200) {
-        var account_data = new AccountData.fromJson(json.decode(response.body)['#value']);
-        final jsonEndpoint_car = '${ServerUrl}/odata/standard.odata/Catalog_%D0%90%D0%B2%D1%82%D0%BE%D0%BC%D0%BE%D0%B1%D0%B8%D0%BB%D0%B8?%24format=json&%24filter= cast(Owner_Key, %27Catalog__ДемоФизическиеЛица%27) eq guid%27${account_data.ref}%27';
+        print(json.decode(response.body));
+        var account_data = new AccountData.fromJson(json.decode(response.body)[0]);
+        final jsonEndpoint_car = '${ServerUrl}/hs/mobilecheckcheck/cars';
         try {
           final response = await http.get(jsonEndpoint_car,headers: {
-            'Authorization': 'Basic YXBpOmFwaQ=='
+            'Authorization': 'Basic ${AuthorizationString}'
           });
           if (response.statusCode == 200) {
-            List car_data_list = json.decode(response.body)['value'];
+            List car_data_list = json.decode(response.body);
             car_data = car_data_list
                 .map((car_data_list) => new CarData.fromJson(car_data_list))
                 .toList();
             updated = false;
             return account_data;
           } else
+            print(response.body);
             throw 'Не удалось загрузить список автомобилей';
         }catch(error){
+          print(response.body);
           throw error.toString();
         }
       } else{
@@ -114,6 +117,7 @@ class AccountPageState extends State<AccountPage> {
         throw 'Не удалось загрузить данные аккаунта';
       };
     }catch(error){
+      print(error.toString());
       throw error.toString();
     }
   }
@@ -132,6 +136,7 @@ class AccountPageState extends State<AccountPage> {
           builder: (context, snapshot) {
             if (snapshot.hasData) {
               account_data = snapshot.data;
+              print(account_data.car);
               if(account_data.car.isEmpty){
                 account_data.car = 'Отсутствует';
               };
@@ -230,7 +235,6 @@ class AccountPageState extends State<AccountPage> {
 
     showDialog(
       context: context,
-      barrierDismissible: false,
       builder: (BuildContext context) {
         return new SimpleDialog(
           title: new Text('Выбор автомобиля'),

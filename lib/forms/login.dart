@@ -163,10 +163,11 @@ class _LoginPageState extends State<LoginPage> {
     if (username.text.length != 0 || password.text.length != 0) {
       LoadingStart(context);
       try {
+        var Authorization = base64.encode(utf8.encode(username.text + ':' + password.text));
         var response = await http.get('${ServerUrl}/hs/mobilecheckcheck/login?user=${username.text}&pass=${password.text}',
             headers: {
               'content-type': 'application/json',
-              'Authorization': 'Basic YXBpOmFwaQ=='
+              'Authorization': 'Basic ${Authorization}'
             }
         );
         if (response.statusCode == 200) {
@@ -179,6 +180,8 @@ class _LoginPageState extends State<LoginPage> {
           var json_response = json.decode(response.body);
           User = json_response['user'];
           UserUID = json_response['user_uid'];
+          EditingAllowed = json_response['editing_allowed'];
+          AuthorizationString = Authorization;
         } else {
           LoadingStop(context);
           print("Response status: ${response.statusCode}");

@@ -131,7 +131,7 @@ class _ManualInputPageState extends State<ManualInputPage> {
           body: '{"user":"${UserUID}","datetime":"${formatter_send.format(formatter_datetime)}","s":"${controller_s.text}","fn":"${controller_fn.text}","fd":"${controller_fd.text}","fpd":"${controller_fpd.text}","photo_check":"${imageBase64}"}',
           headers: {
             'content-type': 'application/json',
-            'Authorization': 'Basic YXBpOmFwaQ=='
+            'Authorization': 'Basic ${AuthorizationString}'
           }
       );
       if (response.statusCode == 200) {

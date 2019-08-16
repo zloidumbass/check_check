@@ -15,10 +15,48 @@ class WaybillData {
   });
   factory WaybillData.fromJson(Map<String, dynamic> jsonData) {
     return WaybillData(
-      name: 'ПЛ от ' + jsonData['Date'].toString().substring(8,10) + '.' + jsonData['Date'].toString().substring(5,7) + '.' + jsonData['Date'].toString().substring(0,4),
+      name: 'ПЛ от ' + jsonData['Дата'].toString().substring(0,10),
       sum: jsonData['СуммаДокумента'].toString(),
-      icon: getIcon(jsonData['Принят'],jsonData['Posted']),
-      status: getStatus(jsonData['Принят'],jsonData['Posted']),
+      icon: getIcon(jsonData['Принят'],jsonData['Проведен']),
+      status: getStatus(jsonData['Принят'],jsonData['Проведен']),
+    );
+  }
+}
+
+class ChecksOfTheWaybills {
+  final String check, id;
+  bool accepted;
+  ChecksOfTheWaybills({
+    this.check,
+    this.id
+  });
+  factory ChecksOfTheWaybills.fromJson(Map<String, dynamic> jsonData) {
+    return ChecksOfTheWaybills(
+      id:  jsonData['НомерСтроки'].toString(),
+        check:  jsonData['Чек_Key'].toString()
+    );
+  }
+}
+
+class WaybillsRouteData {
+  String id, point_A, point_B, date1, date2;
+  double km;
+  WaybillsRouteData({
+    this.id,
+    this.point_A,
+    this.point_B,
+    this.date1,
+    this.date2,
+    this.km,
+  });
+  factory WaybillsRouteData.fromJson(Map<String, dynamic> jsonData) {
+    return WaybillsRouteData(
+      id: jsonData['НомерСтроки'].toString(),
+      point_A: jsonData['point_A'].toString(),
+      point_B: jsonData['point_B'].toString(),
+      date1: jsonData['date1'].toString(),
+      date2: jsonData['date2'].toString(),
+      km: jsonData['km'],
     );
   }
 }
@@ -133,13 +171,13 @@ class WaybillsPageState extends State<WaybillsPage> {
   //Future is n object representing a delayed computation.
   Future<List<WaybillData>> downloadWaybillData() async {
     final jsonEndpoint =
-        '${ServerUrl}/odata/standard.odata/Document_ПутевойЛист?%24format=json&%24filter=Пользователь%20eq%20guid%27${UserUID}%27%20and%20DeletionMark%20eq%20false';
+        '${ServerUrl}/hs/mobilecheckcheck/addwb';
     try{
       final response = await get(jsonEndpoint,headers: {
-        'Authorization': 'Basic YXBpOmFwaQ=='
+        'Authorization': 'Basic ${AuthorizationString}'
       });
       if (response.statusCode == 200) {
-        List waybill_data = json.decode(response.body)['value'];
+        List waybill_data = json.decode(response.body);
         if (waybill_data.length!=0){
           return waybill_data
               .map((waybill_data) => new WaybillData.fromJson(waybill_data))

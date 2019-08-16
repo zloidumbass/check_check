@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:check_check/forms/login.dart';
-import 'package:check_check/forms/manual_input.dart';
-import 'package:check_check/forms/manual_input_waybills1.dart';
+import 'package:check_check/forms/manual_input_cheks.dart';
+import 'package:check_check/forms/manual_input_waybills.dart';
 import 'package:check_check/forms/checks.dart';
 import 'package:check_check/forms/waybills.dart';
 import 'package:check_check/forms/instruction.dart';
@@ -17,7 +17,6 @@ class ActivityPage extends StatefulWidget {
 class ActivityPageState extends State<ActivityPage>  with SingleTickerProviderStateMixin {
   //Переменные
   TabController _tabController;
-  String appbar_text = "ИНСТРУКЦИЯ";
 
   @override
   void initState() {
@@ -39,7 +38,11 @@ class ActivityPageState extends State<ActivityPage>  with SingleTickerProviderSt
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(appbar_text),
+        title: Text(
+            _tabController.index == 0?'ИНСТРУКЦИЯ':
+            _tabController.index == 1?'ЧЕКИ':
+            _tabController.index == 2?'ПУТЕВЫЕ ЛИСТЫ': 'НЕОПРЕДЕЛЕНО'
+        ),
       ),
       drawer: new Drawer(
         child: Column(
@@ -62,7 +65,6 @@ class ActivityPageState extends State<ActivityPage>  with SingleTickerProviderSt
                         Navigator.of(context).pop();
                         setState(() {
                           _tabController.index = 0;
-                          appbar_text = 'ИНСТРУКЦИЯ';
                         });
                       }
                     },
@@ -76,7 +78,6 @@ class ActivityPageState extends State<ActivityPage>  with SingleTickerProviderSt
                         Navigator.of(context).pop();
                         setState(() {
                           _tabController.index = 1;
-                          appbar_text = 'ЧЕКИ';
                         });
                       }
                     },
@@ -88,9 +89,8 @@ class ActivityPageState extends State<ActivityPage>  with SingleTickerProviderSt
                     onTap: () {
                       if(_tabController.index != 2) {
                         Navigator.of(context).pop();
-                        setState(() {
                         _tabController.index = 2;
-                        appbar_text = 'ПУТЕВЫЕ ЛИСТЫ';
+                        setState(() {
                         });
                       }
                     },
@@ -138,14 +138,10 @@ class ActivityPageState extends State<ActivityPage>  with SingleTickerProviderSt
           ],
         ),
       ),
-      body: new TabBarView(
-        controller: _tabController,
-        children: <Widget>[
-          new InstructionPage(),
-          new CheckPage(),
-          new WaybillsPage()
-        ],
-      ),
+      body:
+      _tabController.index == 0? new InstructionPage():
+      _tabController.index == 1? new CheckPage():
+      _tabController.index == 2? new WaybillsPage(): Container(),
       floatingActionButton:
       FloatingActionButton(
         tooltip: 'Increment',
