@@ -1,4 +1,4 @@
-import 'package:check_check/forms/manual_input_waybills.dart';
+import 'package:check_check/forms/waybills.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -7,7 +7,7 @@ import 'package:check_check/module_common.dart';
 import 'package:intl/intl.dart';
 
 
-//Форма  ввода
+//Класс инициализации
 class ManualInputWaybillsAddRoutePage extends StatefulWidget {
   Function(String, int) callback;
   WaybillsRouteData waybills_route;
@@ -16,20 +16,15 @@ class ManualInputWaybillsAddRoutePage extends StatefulWidget {
 
   @override
   State<StatefulWidget> createState(){
-    return new ManualInputWaybillsAddRouteState(this.callback,this.waybills_route, this.index);
+    return new ManualInputWaybillsAddRouteState();
   }
 }
 
 class ManualInputWaybillsAddRouteState extends State<ManualInputWaybillsAddRoutePage> {
 
-  Function(String, int) callback;
-  WaybillsRouteData waybills_route;
-  int index;
-  ManualInputWaybillsAddRouteState(this.callback, this.waybills_route,this.index);
-
   //Переменные даты аремени формы
   DateTime _date1 = DateTime.now();
-  DateFormat formatter = new DateFormat('dd-MM-yyyy');
+  DateFormat formatter = new DateFormat('dd.MM.yyyy');
   DateTime _date2 = DateTime.now();
   //Переменные формы
   final controller_date1 = TextEditingController();
@@ -41,14 +36,14 @@ class ManualInputWaybillsAddRouteState extends State<ManualInputWaybillsAddRoute
   @override
   void initState() {
     super.initState();
-    if(waybills_route != null) {
-      controller_date1.text = waybills_route.date1;
-      controller_date2.text = waybills_route.date2;
-      controller_point_a.text = waybills_route.point_A;
-      controller_point_b.text = waybills_route.point_B;
-      controller_kilometers.text = waybills_route.km;
-      var array_string_date1 = waybills_route.date1.split('-');
-      var array_string_date2 = waybills_route.date2.split('-');
+    if(widget.waybills_route != null) {
+      controller_date1.text = widget.waybills_route.date1;
+      controller_date2.text = widget.waybills_route.date2;
+      controller_point_a.text = widget.waybills_route.point_A;
+      controller_point_b.text = widget.waybills_route.point_B;
+      controller_kilometers.text = widget.waybills_route.km.toString();
+      var array_string_date1 = widget.waybills_route.date1.split('.');
+      var array_string_date2 = widget.waybills_route.date2.split('.');
       _date1 = DateTime.parse(array_string_date1[2] + array_string_date1[1] +
           array_string_date1[0] + 'T000000');
       _date2 = DateTime.parse(array_string_date2[2] + array_string_date2[1] +
@@ -57,7 +52,7 @@ class ManualInputWaybillsAddRouteState extends State<ManualInputWaybillsAddRoute
   }
 
   //При выборе дат
-  Future<Null> _selectDate1(BuildContext context) async {
+  Future<Null> selectDate1(BuildContext context) async {
     final DateTime picked = await showDatePicker(context: context, initialDate: _date1, firstDate: new DateTime(2018), lastDate: new DateTime(2050));
 
     if(picked != null){
@@ -68,7 +63,7 @@ class ManualInputWaybillsAddRouteState extends State<ManualInputWaybillsAddRoute
     }
   }
 
-  Future<Null> _selectDate2
+  Future<Null> selectDate2
       (BuildContext context) async {
     final DateTime picked = await showDatePicker(context: context, initialDate: _date2, firstDate: new DateTime(2018), lastDate: new DateTime(2050));
 
@@ -80,7 +75,7 @@ class ManualInputWaybillsAddRouteState extends State<ManualInputWaybillsAddRoute
     }
   }
 
-  _validateRequiredField(String value, String Field) {
+  validateRequiredField(String value, String Field) {
     if (value.isEmpty) {
       CreateshowDialog(context,new Text(
         'Поле "${Field}" не заполнено',
@@ -93,24 +88,24 @@ class ManualInputWaybillsAddRouteState extends State<ManualInputWaybillsAddRoute
 
   //Добавление
   addRoute() async{
-    if (_validateRequiredField(controller_point_a.text,'Пункт А')){
+    if (validateRequiredField(controller_point_a.text,'Пункт А')){
       return;
     };
-    if (_validateRequiredField(controller_point_b.text,'Пункт B')){
+    if (validateRequiredField(controller_point_b.text,'Пункт B')){
       return;
     };
-    if (_validateRequiredField(controller_date1.text,'Дата начала')){
+    if (validateRequiredField(controller_date1.text,'Дата начала')){
       return;
     };
-    if (_validateRequiredField(controller_date2.text,'Дата конца')){
+    if (validateRequiredField(controller_date2.text,'Дата конца')){
     return;
     };
-    if (_validateRequiredField(controller_kilometers.text,'КМ.')){
+    if (validateRequiredField(controller_kilometers.text,'КМ.')){
       return;
     };
 
-    String jsonInline = '{"point_A" : "${controller_point_a.text}", "point_B" : "${controller_point_b.text}", "date1" : "${controller_date1.text}", "date2" : "${controller_date2.text}", "km" : "${controller_kilometers.text}"}';
-    widget.callback(jsonInline, index );
+    String jsonInline = '{"ПунктОтправления":"${controller_point_a.text}","ПунктНазначения":"${controller_point_b.text}","ДатаВыезда":"${controller_date1.text}","ДатаВозвращения":"${controller_date2.text}","ПройденныйКилометраж":${double.parse(controller_kilometers.text).toDouble()}}';
+    widget.callback(jsonInline, widget.index );
     Navigator.of(context).pop(jsonInline);
   }
 
@@ -152,7 +147,7 @@ class ManualInputWaybillsAddRouteState extends State<ManualInputWaybillsAddRoute
                   children: <Widget>[
                     Expanded(
                       child:new GestureDetector(
-                        onTap: (){_selectDate1(context);},
+                        onTap: (){selectDate1(context);},
                           behavior: HitTestBehavior.opaque,
                           child: new TextFormField(
                             enabled: false,
@@ -166,7 +161,7 @@ class ManualInputWaybillsAddRouteState extends State<ManualInputWaybillsAddRoute
                     ),
                     Expanded(
                         child:new GestureDetector(
-                            onTap: (){_selectDate2(context);},
+                            onTap: (){selectDate2(context);},
                             behavior: HitTestBehavior.opaque,
                             child: new TextFormField(
                               enabled: false,

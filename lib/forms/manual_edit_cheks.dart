@@ -6,7 +6,7 @@ import 'package:check_check/forms/checks.dart';
 import 'package:check_check/module_common.dart';
 
 
-//Форма редактирования
+//Класс инициализации
 class ManualEditPage extends StatefulWidget {
   final CheckData value;
   ManualEditPage({Key key, this.value}) : super(key: key);
@@ -283,7 +283,6 @@ class ManualEditPageState extends State<ManualEditPage> {
   }
 
   Future<List<Nomenclature>> ParseNomenclatureTable(List nomenclature) async {
-
     try {
       if (nomenclature.length != 0) {
         return nomenclature

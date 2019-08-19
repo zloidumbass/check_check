@@ -42,6 +42,7 @@ class CarData {
   }
 }
 
+//Класс инициализации
 class AccountPage extends StatefulWidget {
   @override
   AccountPageState createState() => new AccountPageState();
@@ -52,6 +53,7 @@ class AccountPageState extends State<AccountPage> {
   List<CarData> car_data;
   bool updated = true;  //флаг обновления
 
+  //При выходе из формы
   @override
   void dispose() {
     saveParam();
@@ -68,10 +70,7 @@ class AccountPageState extends State<AccountPage> {
             'Authorization': 'Basic ${AuthorizationString}'
           }
       );
-      if (response.statusCode == 200) {
-        print('ok');
-
-      } else {
+      if (response.statusCode != 200) {
         print("Response status: ${response.statusCode}");
         print("Response body: ${response.body}");
       }
@@ -85,14 +84,15 @@ class AccountPageState extends State<AccountPage> {
     if (!updated){
       return account_data;
     };
-    final jsonEndpoint_account = '${ServerUrl}/hs/mobilecheckcheck/account?user=${UserUID}';
+    //Получаем данные акаунта
+    final jsonEndpoint_account = '${ServerUrl}/hs/mobilecheckcheck/account?user=${UserUID}&version=2';
     try {
       final response = await http.get(jsonEndpoint_account,headers: {
         'Authorization': 'Basic ${AuthorizationString}'
       });
       if (response.statusCode == 200) {
-        print(json.decode(response.body));
         var account_data = new AccountData.fromJson(json.decode(response.body)[0]);
+        //Получаем список авто
         final jsonEndpoint_car = '${ServerUrl}/hs/mobilecheckcheck/cars';
         try {
           final response = await http.get(jsonEndpoint_car,headers: {
@@ -109,7 +109,6 @@ class AccountPageState extends State<AccountPage> {
             print(response.body);
             throw 'Не удалось загрузить список автомобилей';
         }catch(error){
-          print(response.body);
           throw error.toString();
         }
       } else{
@@ -117,7 +116,6 @@ class AccountPageState extends State<AccountPage> {
         throw 'Не удалось загрузить данные аккаунта';
       };
     }catch(error){
-      print(error.toString());
       throw error.toString();
     }
   }
@@ -136,7 +134,7 @@ class AccountPageState extends State<AccountPage> {
           builder: (context, snapshot) {
             if (snapshot.hasData) {
               account_data = snapshot.data;
-              print(account_data.car);
+              //Выставляем дефолтное значение как отсутствует
               if(account_data.car.isEmpty){
                 account_data.car = 'Отсутствует';
               };
@@ -150,7 +148,6 @@ class AccountPageState extends State<AccountPage> {
                           width: MediaQuery.of(context).size.width,
                           child: Padding(padding: EdgeInsets.all(15), child: Text("ИНФОРМАЦИЯ",style: TextStyle(fontSize: 15,color: Colors.grey,fontWeight: FontWeight.bold),textAlign: TextAlign.left), )
                         ),
-
                         new Container(
                           width: MediaQuery.of(context).size.width,
                           child: Padding(padding: EdgeInsets.only(bottom: 0,top: 10,right: 15,left: 15), child: Text('ФИО',style: TextStyle(fontSize: 16),textAlign: TextAlign.left), )

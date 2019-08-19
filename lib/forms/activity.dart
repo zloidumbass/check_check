@@ -27,7 +27,7 @@ class ActivityPageState extends State<ActivityPage>  with SingleTickerProviderSt
   //Открытие формы по кнопке добавления
   OpenForm(){
     if (_tabController.index == 2) {
-      Navigator.push(context, MaterialPageRoute(builder: (context)=> ManualInputWaybillsPage2()));
+      Navigator.push(context, MaterialPageRoute(builder: (context)=> ManualInputWaybillsStep1()));
     }
     else{
       Navigator.push(context, MaterialPageRoute(builder: (context)=> ManualInputPage()));

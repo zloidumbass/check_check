@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:check_check/data/static_variable.dart';
 import 'package:check_check/forms/manual_input_waybills_add_route.dart';
-import 'package:check_check/forms/manual_input_waybills.dart';
+import 'package:check_check/forms/waybills.dart';
 import 'package:check_check/module_common.dart';
 import 'package:check_check/forms/checks.dart';
 import 'package:flutter/material.dart';
@@ -23,23 +23,34 @@ class CustomListViewTileState extends State<CustomListViewTile> {
   List cheks_selected_data;
   CustomListViewTileState(this.check_data, this.cheks_selected_data);
 
-  var isSelected = false;
-  var mycolor=Colors.white;
+  bool isSelected;
+  Color mycolor;
+
+  @override
+  void initState() {
+    isSelected = check_data.check_select;
+    updateSelectedCard();
+  }
+
+  updateSelectedCard(){
+      if (isSelected) {
+        mycolor=Colors.grey[300];
+        cheks_selected_data.add(check_data);
+      } else {
+        mycolor=Colors.white;
+        cheks_selected_data.remove(check_data);
+      }
+  }
 
   selectedCard(){
     setState(() {
       if (isSelected) {
-        mycolor=Colors.white;
         isSelected = false;
-        cheks_selected_data.remove(check_data);
         //cheks_selected_data.remove('{"key" : "${check_data.UID}"}');
       } else {
-        mycolor=Colors.grey[300];
         isSelected = true;
-        cheks_selected_data.add(check_data);
-        //cheks_selected_data.add('{"key" : "${check_data.UID}"}');
-        //print(max_amount.toString());
       }
+      updateSelectedCard();
     });
   }
 
@@ -81,15 +92,19 @@ class CustomListViewTileState extends State<CustomListViewTile> {
   }
 }
 
-class ManualInputWaybillsPage2 extends StatefulWidget {
+
+
+
+
+
+class ManualEditWaybillsStep1 extends StatefulWidget {
+  final WaybillData value;
+  ManualEditWaybillsStep1({Key key, this.value}) : super(key: key);
   @override
-  ManualInputWaybillsPage2State createState() {
-    return new ManualInputWaybillsPage2State();
-  }
+  ManualEditWaybillsStep1State createState() => ManualEditWaybillsStep1State();
 }
 
-
-class ManualInputWaybillsPage2State extends State<ManualInputWaybillsPage2> {
+class ManualEditWaybillsStep1State extends State<ManualEditWaybillsStep1> {
   List<CheckData> check_selected_data = [];
   List<CheckData> check_data = [];
 
@@ -110,12 +125,12 @@ class ManualInputWaybillsPage2State extends State<ManualInputWaybillsPage2> {
       max_amount += check_selected.amount;
       sending_check_data.add('{"key" : "${check_selected.UID}"}');
     }
-    Navigator.push(context, MaterialPageRoute(builder: (context)=> ManualInputWaybillsPage(sending_check_data, max_amount)));
+    Navigator.push(context, MaterialPageRoute(builder: (context)=> ManualEditWaybillsStep2(widget.value, sending_check_data, max_amount)));
   }
 
   //Future is n object representing a delayed computation.
   Future<List<CheckData>> downloadCheckData() async {
-    final jsonEndpoint = '${ServerUrl}/hs/mobilecheckcheck/addrecordqr?status=ТребуетВводаПутевогоЛиста';
+    final jsonEndpoint = '${ServerUrl}/hs/mobilecheckcheck/addrecordqr?status=ТребуетВводаПутевогоЛиста&waybills=${widget.value.id}';
     try{
       final response = await http.get(jsonEndpoint,headers: {
         'Authorization': 'Basic ${AuthorizationString}'
@@ -129,7 +144,6 @@ class ManualInputWaybillsPage2State extends State<ManualInputWaybillsPage2> {
         }
         else throw 'Список пуст';
       } else
-        print(response.body);
         throw 'Не удалось загрузить список';
     }catch(error){
       throw error.toString();
@@ -140,7 +154,7 @@ class ManualInputWaybillsPage2State extends State<ManualInputWaybillsPage2> {
   Widget build(BuildContext context) {
     return new Scaffold(
         appBar: new AppBar(
-        title: new Text('Отправка путевого листа'),
+        title: new Text('Редактирование путевого листа'),
     ),
     body: new ListView(
       children: <Widget>[
@@ -192,32 +206,18 @@ class ManualInputWaybillsPage2State extends State<ManualInputWaybillsPage2> {
   }
 }
 
-//Future is n object representing a delayed computation.
-Future<List<WaybillsRouteData>> RouteList(List waybills_route_data) async {
-  if (waybills_route_data.length!=0){
-    return waybills_route_data
-        .map((waybill_data) => new WaybillsRouteData.fromJson(waybill_data))
-        .toList();
-  }
-  else throw 'Добавьте точки маршрута';
-}
-
-class ManualInputWaybillsPage extends StatefulWidget {
+class ManualEditWaybillsStep2 extends StatefulWidget {
+  final WaybillData value;
   List cheks_selected_data;
   double max_amount;
-  ManualInputWaybillsPage(this.cheks_selected_data, this.max_amount);
+  ManualEditWaybillsStep2(this.value, this.cheks_selected_data, this.max_amount);
   @override
-  ManualInputWaybillsPageState createState() {
-    print(max_amount.toString());
-    return new ManualInputWaybillsPageState(cheks_selected_data, this.max_amount);
+  ManualEditWaybillsStep2State createState() {
+    return new ManualEditWaybillsStep2State();
   }
 }
 
-class ManualInputWaybillsPageState extends State<ManualInputWaybillsPage> {
-
-  List cheks_selected_data;
-  double max_amount;
-  ManualInputWaybillsPageState(this.cheks_selected_data, this.max_amount);
+class ManualEditWaybillsStep2State extends State<ManualEditWaybillsStep2> {
 
   List waybills_route_data = [];
   List waybills_selected_data = [];
@@ -225,6 +225,22 @@ class ManualInputWaybillsPageState extends State<ManualInputWaybillsPage> {
   String button1_name = 'Добавить';
   String button2_name = 'Отправить';
 
+  @override
+  void initState() {
+    waybills_route_data = widget.value.waybills_route_data;
+    print(waybills_route_data);
+  }
+
+  //Future is n object representing a delayed computation.
+  Future<List<WaybillsRouteData>> RouteList() async {
+    print(waybills_route_data);
+    if (waybills_route_data.length!=0){
+      return waybills_route_data
+          .map((waybills_route_data) => new WaybillsRouteData.fromJson(waybills_route_data))
+          .toList();
+    }
+    else throw 'Добавьте точки маршрута';
+  }
 
   //Добавление элемента
   addRouteToForm(String jsonInline, int index){
@@ -253,13 +269,15 @@ class ManualInputWaybillsPageState extends State<ManualInputWaybillsPage> {
     } else{
       var max_km = 0.00;
       for (var waybills_route in waybills_route_data) {
-        max_km = max_km + double.parse(waybills_route['km']);
+        max_km = max_km + waybills_route['ПройденныйКилометраж'];
+        waybills_route['ДатаВыезда'] = waybills_route['ДатаВыезда'].substring(0,10);
+        waybills_route['ДатаВозвращения'] = waybills_route['ДатаВозвращения'].substring(0,10);
       }
-      if(max_amount == 10*max_km/100){
+      if(widget.max_amount == 10*max_km/100){
         submit();
       }else {
         CreateshowDialog(context,new Text(
-          'Количество литров по чекам: '+max_amount.toString()+', Количество литров по точкам: '+(10*max_km/100).toString(),
+          'Количество литров по чекам: '+widget.max_amount.toString()+', Количество литров по точкам: '+(10*max_km/100).toString(),
           style: new TextStyle(fontSize: 16.0),
         ));
       }
@@ -268,12 +286,11 @@ class ManualInputWaybillsPageState extends State<ManualInputWaybillsPage> {
 
   //Отправка данных
   submit() async{
-    print('{"user":"${User}","tab1":${json.encode(waybills_route_data).toString()},"tab2":${cheks_selected_data.toString()}}');
 
     LoadingStart(context);
     try {
       var response = await http.post('${ServerUrl}/hs/mobilecheckcheck/addwb',
-          body: '{"user":"${UserUID}","tab1":${json.encode(waybills_route_data).toString()},"tab2":${cheks_selected_data.toString()}}',
+          body: '{"type":"edit","waybills":"${widget.value.id}","user":"${UserUID}","tab1":${json.encode(waybills_route_data).toString()},"tab2":${widget.cheks_selected_data.toString()}}',
           headers: {
             'content-type': 'application/json',
             'Authorization': 'Basic ${AuthorizationString}'
@@ -283,7 +300,6 @@ class ManualInputWaybillsPageState extends State<ManualInputWaybillsPage> {
         LoadingStop(context);
         Navigator.pop(context);
         Navigator.pop(context);
-        print('ok!');
       } else {
         LoadingStop(context);
         print("Response status: ${response.statusCode}");
@@ -320,13 +336,13 @@ class ManualInputWaybillsPageState extends State<ManualInputWaybillsPage> {
   Widget build(BuildContext context) {
     return new Scaffold(
         appBar: new AppBar(
-          title: new Text('Отправка путевого листа'),
+          title: new Text('Редактирование путевого листа'),
         ),
         body: new ListView(
             children: <Widget>[
               new Center(
                 child: new FutureBuilder<List<WaybillsRouteData>>(
-                  future: RouteList(waybills_route_data),
+                  future: this.RouteList(),
                   builder: (context, snapshot) {
                     if (snapshot.hasData) {
                       List<WaybillsRouteData> check_data = snapshot.data;
@@ -425,11 +441,11 @@ class ManualInputWaybillsPageState extends State<ManualInputWaybillsPage> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
               new Text(
-                waybills_route.name,
+                waybills_route.point_A + " - " + waybills_route.point_B,
                 style: new TextStyle(fontWeight: FontWeight.bold),
               ),
               new Text(
-                'КМ: ' + waybills_route.km,
+                'КМ: ' + waybills_route.km.toString(),
                 style: new TextStyle(color: Colors.grey, fontSize: 13.0),
               ),
             ],
@@ -437,7 +453,7 @@ class ManualInputWaybillsPageState extends State<ManualInputWaybillsPage> {
           subtitle: new Container(
             padding: const EdgeInsets.only(top: 5.0),
             child: new Text(
-              waybills_route.date,
+              waybills_route.date1 + " - " + waybills_route.date2,
               style: new TextStyle(color: Colors.grey, fontSize: 13.0),
             ),
           ),

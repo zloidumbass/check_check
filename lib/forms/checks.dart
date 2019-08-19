@@ -11,10 +11,12 @@ final int MaxLenghtNom = 14;
 class CheckData {
   final String name, status, doc_sum, full_name, date_time, sum, fn, fd, fpd, UID;
   final double amount;
+  final bool check_select;
   final List nomenclature;
   final Icon icon;
   CheckData({
     this.name,
+    this.check_select,
     this.icon,
     this.sum,
     this.doc_sum,
@@ -32,6 +34,7 @@ class CheckData {
     return CheckData(
       name: 'Чек от ' + jsonData['ДатаЧека'].toString().substring(6,8) + '.' + jsonData['ДатаЧека'].toString().substring(4,6) + '.' + jsonData['ДатаЧека'].toString().substring(0,4),
       sum: jsonData['Сумма'].toString(),
+      check_select: jsonData['ЧекВыбран'],
       doc_sum: jsonData['ДокументСумма'].toString(),
       icon: getIcon(jsonData['Статус'].toString()),
       status: getStatus(jsonData['Статус'].toString()),
@@ -172,8 +175,7 @@ class CheckPageState extends State<CheckPage> {
               .map((check_data) => new CheckData.fromJson(check_data))
               .toList();
         }
-        else
-          throw 'Список пуст';
+        else throw 'Список пуст';
       } else
         print(response.body);
         throw 'Не удалось загрузить список';

@@ -1,35 +1,12 @@
 import 'dart:async';
 import 'package:check_check/data/static_variable.dart';
+import 'package:check_check/forms/waybills.dart';
 import 'package:check_check/forms/manual_input_waybills_add_route.dart';
 import 'package:check_check/module_common.dart';
 import 'package:check_check/forms/checks.dart';
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-
-class WaybillsRouteData {
-  String name, date, point_A, point_B, date1, date2, km;
-  WaybillsRouteData({
-    this.name,
-    this.date,
-    this.point_A,
-    this.point_B,
-    this.date1,
-    this.date2,
-    this.km,
-  });
-  factory WaybillsRouteData.fromJson(Map<String, dynamic> jsonData) {
-    return WaybillsRouteData(
-      name: jsonData['point_A'] + ' - ' + jsonData['point_B'],
-      date: jsonData['date1'] + ' - ' + jsonData['date2'],
-      point_A: jsonData['point_A'],
-      point_B: jsonData['point_B'],
-      date1: jsonData['date1'],
-      date2: jsonData['date2'],
-      km: jsonData['km'],
-    );
-  }
-}
 
 class CustomListViewTile extends StatefulWidget {
   final CheckData check_data;
@@ -104,15 +81,15 @@ class CustomListViewTileState extends State<CustomListViewTile> {
   }
 }
 
-class ManualInputWaybillsPage2 extends StatefulWidget {
+class ManualInputWaybillsStep1 extends StatefulWidget {
   @override
-  ManualInputWaybillsPage2State createState() {
-    return new ManualInputWaybillsPage2State();
+  ManualInputWaybillsStep1State createState() {
+    return new ManualInputWaybillsStep1State();
   }
 }
 
 
-class ManualInputWaybillsPage2State extends State<ManualInputWaybillsPage2> {
+class ManualInputWaybillsStep1State extends State<ManualInputWaybillsStep1> {
   List<CheckData> check_selected_data = [];
   List<CheckData> check_data = [];
 
@@ -127,7 +104,6 @@ class ManualInputWaybillsPage2State extends State<ManualInputWaybillsPage2> {
     }
 
     List sending_check_data = [];
-    //sending_check_data.add('1');
     var max_amount = 0.00;
     for (var check_selected in check_selected_data) {
       max_amount += check_selected.amount;
@@ -231,20 +207,16 @@ class ManualInputWaybillsPage extends StatefulWidget {
   ManualInputWaybillsPage(this.cheks_selected_data, this.max_amount);
   @override
   ManualInputWaybillsPageState createState() {
-    print(max_amount.toString());
-    return new ManualInputWaybillsPageState(cheks_selected_data, this.max_amount);
+    return new ManualInputWaybillsPageState();
   }
 }
 
 class ManualInputWaybillsPageState extends State<ManualInputWaybillsPage> {
 
-  List cheks_selected_data;
-  double max_amount;
-  ManualInputWaybillsPageState(this.cheks_selected_data, this.max_amount);
-
   List waybills_route_data = [];
   List waybills_selected_data = [];
 
+  //Дефолтные имена кнопок
   String button1_name = 'Добавить';
   String button2_name = 'Отправить';
 
@@ -256,7 +228,7 @@ class ManualInputWaybillsPageState extends State<ManualInputWaybillsPage> {
   }
 
   //Кнопка Добавить/Удалить
-  addRoute(){
+  addOrRemoveRoute(){
     if(waybills_selected_data.length != 0){
       for (var waybills_selected in waybills_selected_data) {
         waybills_route_data.remove(waybills_selected);
@@ -269,20 +241,20 @@ class ManualInputWaybillsPageState extends State<ManualInputWaybillsPage> {
   }
 
   //Кнопка Отправить/Очистить все
-  nextPage(){
+  sendOrClear(){
     if(waybills_selected_data.length != 0){
       waybills_selected_data.clear();
       selectMode(waybills_selected_data.length != 0);
     } else{
       var max_km = 0.00;
       for (var waybills_route in waybills_route_data) {
-        max_km = max_km + double.parse(waybills_route['km']);
+        max_km = max_km + waybills_route['ПройденныйКилометраж'];
       }
-      if(max_amount == 10*max_km/100){
+      if(widget.max_amount == 10*max_km/100){
         submit();
       }else {
         CreateshowDialog(context,new Text(
-          'Количество литров по чекам: '+max_amount.toString()+', Количество литров по точкам: '+(10*max_km/100).toString(),
+          'Количество литров по чекам: '+widget.max_amount.toString()+', Количество литров по точкам: '+(10*max_km/100).toString(),
           style: new TextStyle(fontSize: 16.0),
         ));
       }
@@ -291,12 +263,11 @@ class ManualInputWaybillsPageState extends State<ManualInputWaybillsPage> {
 
   //Отправка данных
   submit() async{
-    print('{"user":"${User}","tab1":${json.encode(waybills_route_data).toString()},"tab2":${cheks_selected_data.toString()}}');
 
     LoadingStart(context);
     try {
       var response = await http.post('${ServerUrl}/hs/mobilecheckcheck/addwb',
-          body: '{"user":"${UserUID}","tab1":${json.encode(waybills_route_data).toString()},"tab2":${cheks_selected_data.toString()}}',
+          body: '{"type":"add","user":"${UserUID}","tab1":${json.encode(waybills_route_data).toString()},"tab2":${widget.cheks_selected_data.toString()}}',
           headers: {
             'content-type': 'application/json',
             'Authorization': 'Basic ${AuthorizationString}'
@@ -395,7 +366,7 @@ class ManualInputWaybillsPageState extends State<ManualInputWaybillsPage> {
                     button1_name,
                     textAlign: TextAlign.center,
                   ),
-                  onTap: this.addRoute,
+                  onTap: this.addOrRemoveRoute,
                 ),
                 margin: new EdgeInsets.only(left: 20, right: 20, bottom: 10, top: 20),
               ),
@@ -407,7 +378,7 @@ class ManualInputWaybillsPageState extends State<ManualInputWaybillsPage> {
                     button2_name,
                     textAlign: TextAlign.center,
                   ),
-                  onTap: this.nextPage,
+                  onTap: this.sendOrClear,
                 ),
                 margin: new EdgeInsets.only(left: 20, right: 20, bottom: 20, top: 10),
               ),
@@ -448,11 +419,11 @@ class ManualInputWaybillsPageState extends State<ManualInputWaybillsPage> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
               new Text(
-                waybills_route.name,
+                waybills_route.point_A + " - " + waybills_route.point_B,
                 style: new TextStyle(fontWeight: FontWeight.bold),
               ),
               new Text(
-                'КМ: ' + waybills_route.km,
+                'КМ: ' + waybills_route.km.toString(),
                 style: new TextStyle(color: Colors.grey, fontSize: 13.0),
               ),
             ],
@@ -460,7 +431,7 @@ class ManualInputWaybillsPageState extends State<ManualInputWaybillsPage> {
           subtitle: new Container(
             padding: const EdgeInsets.only(top: 5.0),
             child: new Text(
-              waybills_route.date,
+              waybills_route.date1 + " - " + waybills_route.date2,
               style: new TextStyle(color: Colors.grey, fontSize: 13.0),
             ),
           ),

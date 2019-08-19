@@ -4,34 +4,43 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' show get;
 import 'dart:convert';
 
+import 'manual_edit_waybills.dart';
+
 class WaybillData {
-  final String name, status, sum;
+  final String name, status, sum, id;
+  final List checks_waybills, waybills_route_data;
   final Icon icon;
   WaybillData({
     this.name,
+    this.id,
     this.icon,
     this.sum,
     this.status,
+    this.checks_waybills,
+    this.waybills_route_data,
   });
   factory WaybillData.fromJson(Map<String, dynamic> jsonData) {
     return WaybillData(
+      id: jsonData['Ссылка_Key'].toString(),
       name: 'ПЛ от ' + jsonData['Дата'].toString().substring(0,10),
       sum: jsonData['СуммаДокумента'].toString(),
       icon: getIcon(jsonData['Принят'],jsonData['Проведен']),
       status: getStatus(jsonData['Принят'],jsonData['Проведен']),
+      checks_waybills: jsonData['ЧекиПутевогоЛиста'],
+      waybills_route_data: jsonData['Километраж'],
     );
   }
 }
 
-class ChecksOfTheWaybills {
+class ChecksWaybills {
   final String check, id;
   bool accepted;
-  ChecksOfTheWaybills({
+  ChecksWaybills({
     this.check,
     this.id
   });
-  factory ChecksOfTheWaybills.fromJson(Map<String, dynamic> jsonData) {
-    return ChecksOfTheWaybills(
+  factory ChecksWaybills.fromJson(Map<String, dynamic> jsonData) {
+    return ChecksWaybills(
       id:  jsonData['НомерСтроки'].toString(),
         check:  jsonData['Чек_Key'].toString()
     );
@@ -39,10 +48,9 @@ class ChecksOfTheWaybills {
 }
 
 class WaybillsRouteData {
-  String id, point_A, point_B, date1, date2;
+  String point_A, point_B, date1, date2;
   double km;
   WaybillsRouteData({
-    this.id,
     this.point_A,
     this.point_B,
     this.date1,
@@ -51,12 +59,11 @@ class WaybillsRouteData {
   });
   factory WaybillsRouteData.fromJson(Map<String, dynamic> jsonData) {
     return WaybillsRouteData(
-      id: jsonData['НомерСтроки'].toString(),
-      point_A: jsonData['point_A'].toString(),
-      point_B: jsonData['point_B'].toString(),
-      date1: jsonData['date1'].toString(),
-      date2: jsonData['date2'].toString(),
-      km: jsonData['km'],
+      point_A: jsonData['ПунктОтправления'].toString(),
+      point_B: jsonData['ПунктНазначения'].toString(),
+      date1: jsonData['ДатаВыезда'].toString().substring(0,10),
+      date2: jsonData['ДатаВозвращения'].toString().substring(0,10),
+      km: jsonData['ПройденныйКилометраж'],
     );
   }
 }
@@ -95,60 +102,6 @@ getStatus(bool status, bool posted){
     representation_status = 'Неизвестно';
   }
   return representation_status;
-}
-
-class SecondScreen extends StatefulWidget {
-  final WaybillData value;
-  SecondScreen({Key key, this.value}) : super(key: key);
-  @override
-  _SecondScreenState createState() => _SecondScreenState();
-}
-class _SecondScreenState extends State<SecondScreen> {
-  @override
-  Widget build(BuildContext context) {
-    return new Scaffold(
-      appBar: new AppBar(title: new Text('Детали')),
-      body: new Container(
-        child: new Center(
-          child: Column(
-            children: <Widget>[
-              Padding(
-                child: new Text(
-                  'Детали чека',
-                  style: new TextStyle(fontWeight: FontWeight.bold,fontSize: 20.0),
-                  textAlign: TextAlign.center,
-                ),
-                padding: EdgeInsets.only(bottom: 20.0),
-              ),
-              Padding(
-                child: new Text(
-                  'Наименование : ${widget.value.name}',
-                  style: new TextStyle(fontWeight: FontWeight.bold),
-                  textAlign: TextAlign.left,
-                ),
-                padding: EdgeInsets.all(20.0),
-              ),
-              Padding(
-                child: new Text(
-                  'Сумма : ${widget.value.sum}',
-                  style: new TextStyle(fontWeight: FontWeight.bold),
-                  textAlign: TextAlign.left,
-                ),
-                padding: EdgeInsets.all(20.0),
-              ),
-              Padding(
-                child: new Text(
-                  'Статус : ${widget.value.status}',
-                  style: new TextStyle(fontWeight: FontWeight.bold),
-                  textAlign: TextAlign.left,
-                ),
-                padding: EdgeInsets.all(20.0),
-              )
-            ],   ),
-        ),
-      ),
-    );
-  }
 }
 
 class WaybillsPage extends StatefulWidget {
@@ -266,7 +219,7 @@ class WaybillsPageState extends State<WaybillsPage> {
           onTap: () {
             var route = new MaterialPageRoute(
               builder: (BuildContext context) =>
-              new SecondScreen(value: waybill_data),
+              new ManualEditWaybillsStep1(value: waybill_data),
             );
 
             Navigator.of(context).push(route);

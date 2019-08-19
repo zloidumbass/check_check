@@ -128,7 +128,7 @@ class _ManualInputPageState extends State<ManualInputPage> {
     try {
       var formatter_datetime = new DateTime(_date.year,_date.month,_date.day,_time.hour,_time.minute);
       var response = await http.post('${ServerUrl}/hs/mobilecheckcheck/addrecordqr',
-          body: '{"user":"${UserUID}","datetime":"${formatter_send.format(formatter_datetime)}","s":"${controller_s.text}","fn":"${controller_fn.text}","fd":"${controller_fd.text}","fpd":"${controller_fpd.text}","photo_check":"${imageBase64}"}',
+          body: '{"type":"add","user":"${UserUID}","datetime":"${formatter_send.format(formatter_datetime)}","s":"${controller_s.text}","fn":"${controller_fn.text}","fd":"${controller_fd.text}","fpd":"${controller_fpd.text}","photo_check":"${imageBase64}"}',
           headers: {
             'content-type': 'application/json',
             'Authorization': 'Basic ${AuthorizationString}'
