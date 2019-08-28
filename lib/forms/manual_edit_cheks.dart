@@ -206,7 +206,7 @@ class ManualEditPageState extends State<ManualEditPage> {
                   decoration: new BoxDecoration(
                       border: Border.all(color: Colors.black)),
                   child: new ListTile(
-                    enabled: verified != null,
+                    enabled: verified != null && EditingAllowed,
                     title: new Text(
                       text_button_verified,
                       textAlign: TextAlign.center,

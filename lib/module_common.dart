@@ -9,6 +9,29 @@ import 'forms/manual_input_cheks.dart';
 import 'forms/manual_input_waybills.dart';
 import 'forms/waybills.dart';
 
+//общие классы
+class NoAnimationMaterialPageRoute<T> extends MaterialPageRoute<T> {
+  NoAnimationMaterialPageRoute({
+    @required WidgetBuilder builder,
+    RouteSettings settings,
+    bool maintainState = true,
+    bool fullscreenDialog = false,
+  }) : super(
+      builder: builder,
+      maintainState: maintainState,
+      settings: settings,
+      fullscreenDialog: fullscreenDialog);
+
+  @override
+  Widget buildTransitions(BuildContext context, Animation<double> animation,
+      Animation<double> secondaryAnimation, Widget child) {
+    return child;
+  }
+}
+
+
+
+//Общие процедуры и функции
 //Всплывающие окна
 
 CreateshowDialog(context, content) {
@@ -86,9 +109,8 @@ CreateDefaultMasterForm(int index_form, Widget body, context, callback) {
                   title: new Text('ИНСТРУКЦИЯ'),
                   onTap: () {
                     if (index_form != 0) {
-                      Navigator.pop(context);
                       Navigator.of(context).pushAndRemoveUntil(
-                          new MaterialPageRoute(
+                          new NoAnimationMaterialPageRoute(
                               builder: (BuildContext context) =>
                                   new InstructionPage()),
                           (Route<dynamic> route) => false);
@@ -101,9 +123,8 @@ CreateDefaultMasterForm(int index_form, Widget body, context, callback) {
                   title: new Text('ЧЕКИ'),
                   onTap: () {
                     if (index_form != 1) {
-                      Navigator.pop(context);
                       Navigator.of(context).pushAndRemoveUntil(
-                          new MaterialPageRoute(
+                          new NoAnimationMaterialPageRoute(
                               builder: (BuildContext context) =>
                                   new CheckPage()),
                           (Route<dynamic> route) => false);
@@ -116,9 +137,8 @@ CreateDefaultMasterForm(int index_form, Widget body, context, callback) {
                   title: new Text('ПУТЕВЫЕ ЛИСТЫ'),
                   onTap: () {
                     if (index_form != 2) {
-                      Navigator.pop(context);
                       Navigator.of(context).pushAndRemoveUntil(
-                          new MaterialPageRoute(
+                          new NoAnimationMaterialPageRoute(
                               builder: (BuildContext context) =>
                                   new WaybillsPage()),
                           (Route<dynamic> route) => false);

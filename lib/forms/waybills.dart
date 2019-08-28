@@ -107,9 +107,8 @@ class WaybillsPage extends StatefulWidget {
 }
 
 class WaybillsPageState extends State<WaybillsPage> {
-  List<WaybillData> waybill_data;
-  final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey =
-      new GlobalKey<RefreshIndicatorState>();
+  List<WaybillData> waybill_data = List<WaybillData>();
+  final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey = new GlobalKey<RefreshIndicatorState>();
   bool list_lock = false;
 
   @override
@@ -132,11 +131,13 @@ class WaybillsPageState extends State<WaybillsPage> {
 
   //Future is n object representing a delayed computation.
   Future<List<WaybillData>> downloadWaybillData() async {
+    list_lock = true;
     final jsonEndpoint = '${ServerUrl}/hs/mobilecheckcheck/addwb';
     try {
       final response = await get(jsonEndpoint,
           headers: {'Authorization': 'Basic ${AuthorizationString}'});
       if (response.statusCode == 200) {
+        list_lock = false;
         List waybill_data = json.decode(response.body);
         if (waybill_data.length != 0) {
           return waybill_data
@@ -211,12 +212,21 @@ class WaybillsPageState extends State<WaybillsPage> {
               ),
             ),
             onTap: () {
-              var route = new MaterialPageRoute(
-                builder: (BuildContext context) =>
-                    new ManualEditWaybillsStep1(waybill_data, turnOnUpdate),
-              );
-
-              Navigator.of(context).push(route);
+              if (waybill_data.status != 'Принят' && EditingAllowed) {
+                if (!list_lock) {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) =>
+                              ManualEditWaybillsStep1(
+                                  waybill_data, turnOnUpdate)));
+                }
+              }else{
+                CreateshowDialog(context,new Text(
+                  "Редактирование невозможно",
+                  style: new TextStyle(fontSize: 16.0),
+                ));
+              }
             })
       ]),
     );
