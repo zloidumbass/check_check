@@ -7,6 +7,7 @@ import 'forms/instruction.dart';
 import 'forms/login.dart';
 import 'forms/manual_input_cheks.dart';
 import 'forms/manual_input_waybills.dart';
+import 'forms/sd_list.dart';
 import 'forms/waybills.dart';
 
 //общие классы
@@ -152,6 +153,13 @@ CreateDefaultMasterForm(int index_form, Widget body, context, callback) {
                   onTap: () {
                     Navigator.push(context,
                         MaterialPageRoute(builder: (context) => AccountPage()));
+                  },
+                ),
+                new ListTile(
+                  leading: new Icon(Icons.live_help),
+                  title: new Text('ПОМОЩЬ'),
+                  onTap: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (context)=> SDPage()));
                   },
                 ),
                 new ListTile(

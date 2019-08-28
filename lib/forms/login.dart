@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'package:check_check/module_common.dart';
 import 'package:check_check/data/static_variable.dart';
+import 'package:check_check/data/session_options.dart';
 import 'package:check_check/forms/registration.dart';
 
 import 'instruction.dart';

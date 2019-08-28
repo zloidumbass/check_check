@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:barcode_scan/barcode_scan.dart';
 import 'package:check_check/data/static_variable.dart';
+import 'package:check_check/data/session_options.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
