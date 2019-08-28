@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:barcode_scan/barcode_scan.dart';
 import 'package:check_check/data/static_variable.dart';
+import 'package:check_check/data/session_options.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -13,6 +14,10 @@ import 'package:intl/intl.dart';
 
 //Форма ручного ввода
 class ManualInputPage extends StatefulWidget {
+  Function callback;
+
+  ManualInputPage(this.callback);
+
   @override
   State<StatefulWidget> createState() => _ManualInputPageState();
 }
@@ -20,13 +25,16 @@ class ManualInputPage extends StatefulWidget {
 class _ManualInputPageState extends State<ManualInputPage> {
   //Переменные сканера
   String result_scan = "";
+
   //переменные imagePicker
   String image_path = "";
+
   //Переменные даты аремени формы
   DateTime _date = DateTime.now();
   DateFormat formatter = new DateFormat('dd-MM-yyyy');
   DateFormat formatter_send = new DateFormat('yyyyMMddTHHmm');
   TimeOfDay _time = TimeOfDay.now();
+
   //Переменные формы
   final controller_date = TextEditingController();
   final controller_time = TextEditingController();
@@ -37,9 +45,13 @@ class _ManualInputPageState extends State<ManualInputPage> {
 
   //При выборе даты
   Future<Null> _selectDate(BuildContext context) async {
-    final DateTime picked = await showDatePicker(context: context, initialDate: _date, firstDate: new DateTime(2018), lastDate: new DateTime(2050));
+    final DateTime picked = await showDatePicker(
+        context: context,
+        initialDate: _date,
+        firstDate: new DateTime(2018),
+        lastDate: new DateTime(2050));
 
-    if(picked != null){
+    if (picked != null) {
       setState(() {
         _date = picked;
         controller_date.text = formatter.format(_date);
@@ -49,9 +61,10 @@ class _ManualInputPageState extends State<ManualInputPage> {
 
   //При выборе времени
   Future<Null> _selectTime(BuildContext context) async {
-    final TimeOfDay picked = await showTimePicker(context: context, initialTime: _time);
+    final TimeOfDay picked =
+        await showTimePicker(context: context, initialTime: _time);
 
-    if(picked != null){
+    if (picked != null) {
       setState(() {
         _time = picked;
         controller_time.text = _time.format(context);
@@ -61,19 +74,21 @@ class _ManualInputPageState extends State<ManualInputPage> {
 
   _validateRequiredField(String value, String Field) {
     if (value.isEmpty) {
-      CreateshowDialog(context,new Text(
-        'Поле "${Field}" не заполнено',
-        style: new TextStyle(fontSize: 16.0),
-      ));
+      CreateshowDialog(
+          context,
+          new Text(
+            'Поле "${Field}" не заполнено',
+            style: new TextStyle(fontSize: 16.0),
+          ));
       return true;
     }
     return false;
   }
 
   //Локальные функции
-  NumberToString(int number){
-    String numberstring =  number.toString();
-    if (numberstring.length == 1){
+  NumberToString(int number) {
+    String numberstring = number.toString();
+    if (numberstring.length == 1) {
       numberstring = '0' + numberstring;
     }
     return numberstring;
@@ -86,78 +101,94 @@ class _ManualInputPageState extends State<ManualInputPage> {
       setState(() {
         print(image.path);
         image_path = image.path;
-      }) ;
-    } catch(error){
-
-    }
+      });
+    } catch (error) {}
   }
 
   //отправка данных
-  submit() async{
+  submit() async {
     String imageBase64 = "";
     //Обработки проверки заполнения форм
-    if (_validateRequiredField(controller_date.text,'Дата')){
+    if (_validateRequiredField(controller_date.text, 'Дата')) {
       return;
-    };
-    if (_validateRequiredField(controller_time.text,'Время')){
+    }
+    ;
+    if (_validateRequiredField(controller_time.text, 'Время')) {
       return;
-    };
-    if (_validateRequiredField(controller_fn.text,'ФН')){
+    }
+    ;
+    if (_validateRequiredField(controller_fn.text, 'ФН')) {
       return;
-    };
-    if (_validateRequiredField(controller_fd.text,'ФД')){
+    }
+    ;
+    if (_validateRequiredField(controller_fd.text, 'ФД')) {
       return;
-    };
-    if (_validateRequiredField(controller_fpd.text,'ФПД.')){
+    }
+    ;
+    if (_validateRequiredField(controller_fpd.text, 'ФПД.')) {
       return;
-    };
-    if (_validateRequiredField(controller_s.text,'Сумма')){
+    }
+    ;
+    if (_validateRequiredField(controller_s.text, 'Сумма')) {
       return;
-    };
-    try{
+    }
+    ;
+    try {
       imageBase64 = base64Encode(File(image_path).readAsBytesSync());
-    } catch(error){
-      CreateshowDialog(context,new Text(
-        'Фотография чека отсутствует',
-        style: new TextStyle(fontSize: 16.0),
-      ));
+    } catch (error) {
+      CreateshowDialog(
+          context,
+          new Text(
+            'Фотография чека отсутствует',
+            style: new TextStyle(fontSize: 16.0),
+          ));
       return;
-    };
+    }
+    ;
     //Методы отправки
     LoadingStart(context);
     try {
-      var formatter_datetime = new DateTime(_date.year,_date.month,_date.day,_time.hour,_time.minute);
-      var response = await http.post('${ServerUrl}/hs/mobilecheckcheck/addrecordqr',
-          body: '{"user":"${UserUID}","datetime":"${formatter_send.format(formatter_datetime)}","s":"${controller_s.text}","fn":"${controller_fn.text}","fd":"${controller_fd.text}","fpd":"${controller_fpd.text}","photo_check":"${imageBase64}"}',
+      var formatter_datetime = new DateTime(
+          _date.year, _date.month, _date.day, _time.hour, _time.minute);
+      var response = await http.post(
+          '${ServerUrl}/hs/mobilecheckcheck/addrecordqr',
+          body:
+              '{"type":"add","user":"${UserUID}","datetime":"${formatter_send.format(formatter_datetime)}","s":"${controller_s.text}","fn":"${controller_fn.text}","fd":"${controller_fd.text}","fpd":"${controller_fpd.text}","photo_check":"${imageBase64}"}',
           headers: {
             'content-type': 'application/json',
-            'Authorization': 'Basic YXBpOmFwaQ=='
-          }
-      );
+            'Authorization': 'Basic ${AuthorizationString}'
+          });
       if (response.statusCode == 200) {
         LoadingStop(context);
-        CreateshowDialog(context,new Text(
-          "Данные успешно отправлены",
-          style: new TextStyle(fontSize: 16.0),
-        ));
+        Navigator.pop(context);
+        widget.callback();
+//        CreateshowDialog(context,new Text(
+//          "Данные успешно отправлены",
+//          style: new TextStyle(fontSize: 16.0),
+//        ));
         print('ok!');
       } else {
         LoadingStop(context);
         print("Response status: ${response.statusCode}");
         print("Response body: ${response.body}");
-        CreateshowDialog(context,new Text(
-          response.body,
-          style: new TextStyle(fontSize: 16.0),
-        ));
+        CreateshowDialog(
+            context,
+            new Text(
+              response.body,
+              style: new TextStyle(fontSize: 16.0),
+            ));
       }
     } catch (error) {
       LoadingStop(context);
       print(error.toString());
-      CreateshowDialog(context,new Text(
-        'Ошибка соединения с сервером',
-        style: new TextStyle(fontSize: 16.0),
-      ));
-    };
+      CreateshowDialog(
+          context,
+          new Text(
+            'Ошибка соединения с сервером',
+            style: new TextStyle(fontSize: 16.0),
+          ));
+    }
+    ;
   }
 
   //инициализация сканера
@@ -202,13 +233,13 @@ class _ManualInputPageState extends State<ManualInputPage> {
 
   @override
   Widget build(BuildContext context) {
-
     Image PhotoCheck;
-    if(image_path != ""){
+    if (image_path != "") {
       PhotoCheck = Image.file(File(image_path));
-    }else{
+    } else {
       PhotoCheck = Image.asset('assets/images/camera.png');
-    };
+    }
+    ;
 
     return new Scaffold(
       appBar: new AppBar(
@@ -219,92 +250,83 @@ class _ManualInputPageState extends State<ManualInputPage> {
           child: new Form(
             child: new ListView(
               children: <Widget>[
-                Row(
-                  children: <Widget>[
-                    Expanded(
-                      child:new GestureDetector(
-                        onTap: (){_selectDate(context);},
+                Row(children: <Widget>[
+                  Expanded(
+                      child: new GestureDetector(
+                          onTap: () {
+                            _selectDate(context);
+                          },
                           behavior: HitTestBehavior.opaque,
                           child: new TextFormField(
                             enabled: false,
                             controller: controller_date,
                             keyboardType: TextInputType.datetime,
                             decoration: new InputDecoration(
-                                labelText: 'Дата',
+                              labelText: 'Дата',
                             ),
-                        )
-                      )
-                    ),
-                    Expanded(
-                      child:new GestureDetector(
-                        onTap: (){_selectTime(context);},
-                        behavior: HitTestBehavior.opaque,
-                        child: new TextFormField(
-                          enabled: false,
-                          controller: controller_time,
-                          keyboardType: TextInputType.datetime,
-                          decoration: new InputDecoration(
-                            labelText: 'Время',
-                          ),
-                        )
-                      )
-                    ),
-                  ]
-                ),
+                          ))),
+                  Expanded(
+                      child: new GestureDetector(
+                          onTap: () {
+                            _selectTime(context);
+                          },
+                          behavior: HitTestBehavior.opaque,
+                          child: new TextFormField(
+                            enabled: false,
+                            controller: controller_time,
+                            keyboardType: TextInputType.datetime,
+                            decoration: new InputDecoration(
+                              labelText: 'Время',
+                            ),
+                          ))),
+                ]),
                 new TextFormField(
-                    controller: controller_s,
-                    keyboardType: TextInputType.number,
-                    decoration: new InputDecoration(
-                        labelText: 'Сумма'
-                    ),
-                    inputFormatters: [ValidatorInputFormatter(
+                  controller: controller_s,
+                  keyboardType: TextInputType.number,
+                  decoration: new InputDecoration(labelText: 'Сумма'),
+                  inputFormatters: [
+                    ValidatorInputFormatter(
                       editingValidator: DecimalNumberEditingRegexValidator(),
-                    )],
-                ),
-                new TextFormField(
-                    controller: controller_fn,
-                    maxLength: 16,
-                    keyboardType: TextInputType.number,
-                    decoration: new InputDecoration(
-                        labelText: 'ФН'
-                    ),
-                    inputFormatters: <TextInputFormatter>[
-                      WhitelistingTextInputFormatter(RegExp(r"(\w+)")),
-                    ],
-                ),
-                new TextFormField(
-                    controller: controller_fd,
-                    maxLength: 10,
-                    keyboardType: TextInputType.number,
-                    decoration: new InputDecoration(
-                        labelText: 'ФД'
-                    ),
-                    inputFormatters: <TextInputFormatter>[
-                      WhitelistingTextInputFormatter(RegExp(r"(\w+)")),
-                    ],
-                ),
-                new TextFormField(
-                    controller: controller_fpd,
-                    maxLength: 10,
-                    keyboardType: TextInputType.number,
-                    decoration: new InputDecoration(
-                        labelText: 'ФПД'
-                    ),
-                    inputFormatters: <TextInputFormatter>[
-                      WhitelistingTextInputFormatter(RegExp(r"(\w+)")),
-                    ],
-                ),
-                new Container(
-                  decoration:
-                  new BoxDecoration(border: Border.all(color: Colors.black)),
-                  child: new FlatButton(
-                        onPressed: this.getImage,
-                        child: PhotoCheck,
                     )
+                  ],
+                ),
+                new TextFormField(
+                  controller: controller_fn,
+                  maxLength: 16,
+                  keyboardType: TextInputType.number,
+                  decoration: new InputDecoration(labelText: 'ФН'),
+                  inputFormatters: <TextInputFormatter>[
+                    WhitelistingTextInputFormatter(RegExp(r"(\w+)")),
+                  ],
+                ),
+                new TextFormField(
+                  controller: controller_fd,
+                  maxLength: 10,
+                  keyboardType: TextInputType.number,
+                  decoration: new InputDecoration(labelText: 'ФД'),
+                  inputFormatters: <TextInputFormatter>[
+                    WhitelistingTextInputFormatter(RegExp(r"(\w+)")),
+                  ],
+                ),
+                new TextFormField(
+                  controller: controller_fpd,
+                  maxLength: 10,
+                  keyboardType: TextInputType.number,
+                  decoration: new InputDecoration(labelText: 'ФПД'),
+                  inputFormatters: <TextInputFormatter>[
+                    WhitelistingTextInputFormatter(RegExp(r"(\w+)")),
+                  ],
                 ),
                 new Container(
-                  decoration:
-                  new BoxDecoration(border: Border.all(color: Colors.black)),
+                    decoration: new BoxDecoration(
+                        border: Border.all(color: Colors.black)),
+                    child: new FlatButton(
+                      onPressed: this.getImage,
+                      child: PhotoCheck,
+                    )),
+                new Container(
+                  decoration: new BoxDecoration(
+                      border: Border.all(color: Colors.black)),
                   child: new ListTile(
                     title: new Text(
                       "Сканер",
@@ -312,13 +334,11 @@ class _ManualInputPageState extends State<ManualInputPage> {
                     ),
                     onTap: this._scanQR,
                   ),
-                  margin: new EdgeInsets.only(
-                      top: 20.0
-                  ),
+                  margin: new EdgeInsets.only(top: 20.0),
                 ),
                 new Container(
-                  decoration:
-                  new BoxDecoration(border: Border.all(color: Colors.black)),
+                  decoration: new BoxDecoration(
+                      border: Border.all(color: Colors.black)),
                   child: new ListTile(
                     title: new Text(
                       "Отправить",
@@ -326,14 +346,11 @@ class _ManualInputPageState extends State<ManualInputPage> {
                     ),
                     onTap: this.submit,
                   ),
-                  margin: new EdgeInsets.only(
-                      top: 20.0
-                  ),
+                  margin: new EdgeInsets.only(top: 20.0),
                 )
               ],
             ),
-          )
-      ),
+          )),
     );
   }
 }

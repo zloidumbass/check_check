@@ -6,6 +6,7 @@ abstract class StringValidator {
 
 class RegexValidator implements StringValidator {
   RegexValidator({this.regexSource});
+
   final String regexSource;
 
   /// value: the input string
@@ -23,13 +24,14 @@ class RegexValidator implements StringValidator {
     } catch (e) {
       // Invalid regex
       assert(false, e.toString());
-    return true;
-  }
+      return true;
+    }
   }
 }
 
 class ValidatorInputFormatter implements TextInputFormatter {
   ValidatorInputFormatter({this.editingValidator});
+
   final StringValidator editingValidator;
 
   TextEditingValue formatEditUpdate(
@@ -50,8 +52,7 @@ class DecimalNumberEditingRegexValidator extends RegexValidator {
 
 class DataTimeSubmitRegexValidator extends RegexValidator {
   DataTimeSubmitRegexValidator()
-      : super(
-      regexSource: "^\$|^(0|([1-9][0-9]{0,7}))(\\T[0-9]{0,4})?\$");
+      : super(regexSource: "^\$|^(0|([1-9][0-9]{0,7}))(\\T[0-9]{0,4})?\$");
 }
 
 class DecimalPhoneEditingRegexValidator extends RegexValidator {
