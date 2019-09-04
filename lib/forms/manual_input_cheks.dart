@@ -28,6 +28,8 @@ class _ManualInputPageState extends State<ManualInputPage> {
 
   //переменные imagePicker
   String image_path = "";
+  Image PhotoCheck = Image.asset('assets/images/camera.png');
+  Icon icon_photo = new Icon(Icons.error, color: Colors.red);
 
   //Переменные даты аремени формы
   DateTime _date = DateTime.now();
@@ -105,6 +107,39 @@ class _ManualInputPageState extends State<ManualInputPage> {
     } catch (error) {}
   }
 
+  //При открытии картинки
+  Future openImage() async {
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return new Container(
+              padding: new EdgeInsets.all(20.0),
+              child: new Form(
+                  child: new ListView(
+                children: <Widget>[
+                  new Container(
+                      decoration: new BoxDecoration(
+                          border: Border.all(color: Colors.black)),
+                      child: Image.file(File(image_path))),
+                  new Container(
+                    decoration: new BoxDecoration(
+                        color: Colors.white,
+                        border: Border.all(color: Colors.black)),
+                    child: new FlatButton(
+                      child: new Text(
+                        "Назад",
+                        textAlign: TextAlign.center,
+                      ),
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                    ),
+                  )
+                ],
+              )));
+        });
+  }
+
   //отправка данных
   submit() async {
     String imageBase64 = "";
@@ -162,11 +197,6 @@ class _ManualInputPageState extends State<ManualInputPage> {
         LoadingStop(context);
         Navigator.pop(context);
         widget.callback();
-//        CreateshowDialog(context,new Text(
-//          "Данные успешно отправлены",
-//          style: new TextStyle(fontSize: 16.0),
-//        ));
-        print('ok!');
       } else {
         LoadingStop(context);
         print("Response status: ${response.statusCode}");
@@ -233,11 +263,10 @@ class _ManualInputPageState extends State<ManualInputPage> {
 
   @override
   Widget build(BuildContext context) {
-    Image PhotoCheck;
     if (image_path != "") {
-      PhotoCheck = Image.file(File(image_path));
+      icon_photo = new Icon(Icons.check, color: Colors.green);
     } else {
-      PhotoCheck = Image.asset('assets/images/camera.png');
+      icon_photo = new Icon(Icons.error, color: Colors.red);
     }
     ;
 
@@ -317,13 +346,25 @@ class _ManualInputPageState extends State<ManualInputPage> {
                     WhitelistingTextInputFormatter(RegExp(r"(\w+)")),
                   ],
                 ),
-                new Container(
-                    decoration: new BoxDecoration(
-                        border: Border.all(color: Colors.black)),
-                    child: new FlatButton(
-                      onPressed: this.getImage,
-                      child: PhotoCheck,
-                    )),
+                Row(children: <Widget>[
+                  Expanded(child: icon_photo),
+                  Expanded(
+                    child: new Container(
+                        height: MediaQuery.of(context).size.height * 0.05,
+                        child: new FlatButton(
+                          onPressed: this.getImage,
+                          child: PhotoCheck,
+                        )),
+                  ),
+                  Expanded(
+                    child: new Container(
+                        height: MediaQuery.of(context).size.height * 0.05,
+                        child: new FlatButton(
+                          onPressed: image_path != "" ? this.openImage : null,
+                          child: Text('Показать'),
+                        )),
+                  ),
+                ]),
                 new Container(
                   decoration: new BoxDecoration(
                       border: Border.all(color: Colors.black)),

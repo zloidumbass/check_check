@@ -183,8 +183,6 @@ class ManualInputWaybillsStep1State extends State<ManualInputWaybillsStep1> {
                         (MediaQuery.of(context).size.height - 180) / 2),
                     child: Text(
                       '${snapshot.error}',
-                      style:
-                          TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                       textAlign: TextAlign.left,
                     ),
                   );

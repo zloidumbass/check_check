@@ -139,7 +139,7 @@ class CheckPage extends StatefulWidget {
 }
 
 class CheckPageState extends State<CheckPage> {
-  List<CheckData> check_data = new List<CheckData>();
+  List<CheckData> check_data;
   final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey =
       new GlobalKey<RefreshIndicatorState>();
   bool list_lock = false;
@@ -177,12 +177,12 @@ class CheckPageState extends State<CheckPage> {
               .map((check_data) => new CheckData.fromJson(check_data))
               .toList();
         } else
-          throw 'Список пуст';
+          return List<CheckData>();
       } else
         print(response.body);
-      throw 'Не удалось загрузить список';
+      return List<CheckData>();
     } catch (error) {
-      throw error.toString();
+      return List<CheckData>();
     }
   }
 
@@ -192,7 +192,23 @@ class CheckPageState extends State<CheckPage> {
   }
 
   Widget getBody() {
-    if (check_data.length != 0) {
+    if (check_data == null) {
+      return new Center(
+          child: new CircularProgressIndicator());
+    } else if (check_data.length == 0) {
+      return new Center(
+          child: new RefreshIndicator(
+              key: _refreshIndicatorKey,
+              onRefresh: this.refreshList,
+              child: new ListView(children: <Widget>[
+                new Container(
+                  child: Text('Список пуст'),
+                  width: MediaQuery.of(context).size.width,
+                  height: MediaQuery.of(context).size.height *0.8,
+                  alignment: FractionalOffset.center,
+                )
+              ])));
+    } else {
       return new Center(
           child: new RefreshIndicator(
               key: _refreshIndicatorKey,
@@ -200,15 +216,13 @@ class CheckPageState extends State<CheckPage> {
               child: ListView.builder(
                 itemCount: check_data.length,
                 itemBuilder: (context, int currentIndex) =>
-                    new Column(children: <Widget>[
-                      new Divider(
-                        height: 10.0,
-                      ),
-                      this.CustomListViewTile(check_data[currentIndex])
-                    ]),
+                new Column(children: <Widget>[
+                  new Divider(
+                    height: 10.0,
+                  ),
+                  this.CustomListViewTile(check_data[currentIndex])
+                ]),
               )));
-    } else {
-      return new Center(child: new CircularProgressIndicator());
     }
   }
 

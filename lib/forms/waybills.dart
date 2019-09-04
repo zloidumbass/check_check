@@ -108,8 +108,9 @@ class WaybillsPage extends StatefulWidget {
 }
 
 class WaybillsPageState extends State<WaybillsPage> {
-  List<WaybillData> waybill_data = List<WaybillData>();
-  final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey = new GlobalKey<RefreshIndicatorState>();
+  List<WaybillData> waybill_data;
+  final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey =
+      new GlobalKey<RefreshIndicatorState>();
   bool list_lock = false;
 
   @override
@@ -145,12 +146,12 @@ class WaybillsPageState extends State<WaybillsPage> {
               .map((waybill_data) => new WaybillData.fromJson(waybill_data))
               .toList();
         } else
-          throw 'Список пуст';
+          return List<WaybillData>();
       } else
-        throw 'Не удалось загрузить список';
+        return List<WaybillData>();
     } catch (error) {
       print(error.toString());
-      throw error.toString();
+      return List<WaybillData>();
     }
   }
 
@@ -160,7 +161,23 @@ class WaybillsPageState extends State<WaybillsPage> {
   }
 
   Widget getBody() {
-    if (waybill_data.length != 0) {
+    if (waybill_data == null) {
+      return new Center(
+          child: new CircularProgressIndicator());
+    } else if (waybill_data.length == 0) {
+      return new Center(
+          child: new RefreshIndicator(
+              key: _refreshIndicatorKey,
+              onRefresh: this.refreshList,
+              child: new ListView(children: <Widget>[
+                new Container(
+                  child: Text('Список пуст'),
+                  width: MediaQuery.of(context).size.width,
+                  height: MediaQuery.of(context).size.height *0.8,
+                  alignment: FractionalOffset.center,
+                )
+              ])));
+    } else {
       return new Center(
           child: new RefreshIndicator(
               key: _refreshIndicatorKey,
@@ -169,14 +186,12 @@ class WaybillsPageState extends State<WaybillsPage> {
                 itemCount: waybill_data.length,
                 itemBuilder: (context, int currentIndex) =>
                     new Column(children: <Widget>[
-                      new Divider(
-                        height: 10.0,
-                      ),
-                      this.CustomListViewTile(waybill_data[currentIndex])
-                    ]),
+                  new Divider(
+                    height: 10.0,
+                  ),
+                  this.CustomListViewTile(waybill_data[currentIndex])
+                ]),
               )));
-    } else {
-      return new Center(child: new CircularProgressIndicator());
     }
   }
 
@@ -218,15 +233,16 @@ class WaybillsPageState extends State<WaybillsPage> {
                   Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) =>
-                              ManualEditWaybillsStep1(
-                                  waybill_data, turnOnUpdate)));
+                          builder: (context) => ManualEditWaybillsStep1(
+                              waybill_data, turnOnUpdate)));
                 }
-              }else{
-                CreateshowDialog(context,new Text(
-                  "Редактирование невозможно",
-                  style: new TextStyle(fontSize: 16.0),
-                ));
+              } else {
+                CreateshowDialog(
+                    context,
+                    new Text(
+                      "Редактирование невозможно",
+                      style: new TextStyle(fontSize: 16.0),
+                    ));
               }
             })
       ]),
