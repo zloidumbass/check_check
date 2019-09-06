@@ -51,7 +51,6 @@ class CustomListViewTileState extends State<CustomListViewTile> {
     setState(() {
       if (isSelected) {
         isSelected = false;
-        //cheks_selected_data.remove('{"key" : "${check_data.UID}"}');
       } else {
         isSelected = true;
       }
@@ -84,7 +83,7 @@ class CustomListViewTileState extends State<CustomListViewTile> {
             subtitle: new Container(
               padding: const EdgeInsets.only(top: 5.0),
               child: new Text(
-                'Сумма: ' + check_data.sum,
+                'Сумма: ' + check_data.doc_sum,
                 style: new TextStyle(color: Colors.grey, fontSize: 13.0),
               ),
             ),
@@ -129,6 +128,7 @@ class ManualEditWaybillsStep1State extends State<ManualEditWaybillsStep1> {
       max_amount += check_selected.amount;
       sending_check_data.add('{"key" : "${check_selected.UID}"}');
     }
+    print(max_amount);
     Navigator.push(
         context,
         MaterialPageRoute(
@@ -248,12 +248,10 @@ class ManualEditWaybillsStep2State extends State<ManualEditWaybillsStep2> {
   @override
   void initState() {
     waybills_route_data = widget.value.waybills_route_data;
-    print(waybills_route_data);
   }
 
   //Future is n object representing a delayed computation.
   Future<List<WaybillsRouteData>> RouteList() async {
-    print(waybills_route_data);
     if (waybills_route_data.length != 0) {
       return waybills_route_data
           .map((waybills_route_data) =>
@@ -303,6 +301,7 @@ class ManualEditWaybillsStep2State extends State<ManualEditWaybillsStep2> {
       if (widget.max_amount == 10 * max_km / 100) {
         submit();
       } else {
+        print(widget.max_amount);
         CreateshowDialog(
             context,
             new Text(
