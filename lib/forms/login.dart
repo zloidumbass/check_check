@@ -43,6 +43,10 @@ class _LoginPageState extends State<LoginPage> {
     );
     _firebaseMessaging.requestNotificationPermissions(
         const IosNotificationSettings(sound: true, badge: true, alert: true));
+    _firebaseMessaging.onIosSettingsRegistered
+      .listen((IosNotificationSettings settings){
+        print("Setting reg: $settings");
+      });
     _firebaseMessaging.getToken().then((token) {
       print(token);
     });

@@ -49,5 +49,7 @@
 	<false/>
 	<key>aps-environment</key>
 	<string>production</string>
+	<key>FirebaseAppDelegateProxyEnabled</key>
+	<string>NO</string>
 </dict>
 </plist>
