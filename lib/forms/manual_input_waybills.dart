@@ -37,13 +37,10 @@ class CustomListViewTileState extends State<CustomListViewTile> {
         mycolor = Colors.white;
         isSelected = false;
         cheks_selected_data.remove(check_data);
-        //cheks_selected_data.remove('{"key" : "${check_data.UID}"}');
       } else {
         mycolor = Colors.grey[300];
         isSelected = true;
         cheks_selected_data.add(check_data);
-        //cheks_selected_data.add('{"key" : "${check_data.UID}"}');
-        //print(max_amount.toString());
       }
     });
   }
@@ -73,7 +70,7 @@ class CustomListViewTileState extends State<CustomListViewTile> {
             subtitle: new Container(
               padding: const EdgeInsets.only(top: 5.0),
               child: new Text(
-                'Сумма: ' + check_data.sum,
+                'Сумма: ' + check_data.doc_sum,
                 style: new TextStyle(color: Colors.grey, fontSize: 13.0),
               ),
             ),
