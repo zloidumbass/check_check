@@ -182,6 +182,7 @@ class _LoginPageState extends State<LoginPage> {
           var json_response = json.decode(response.body);
           User = json_response['user'];
           UserUID = json_response['user_uid'];
+          UserPhone = username.text;
           EditingAllowed = json_response['editing_allowed'];
           AuthorizationString = Authorization;
         } else {
