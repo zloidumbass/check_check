@@ -22,12 +22,19 @@ class _LoginPageState extends State<LoginPage> {
   TextEditingController password = new TextEditingController();
 
   bool checkValue = false;
+  String token = '';
 
   SharedPreferences sharedPreferences;
   FirebaseMessaging _firebaseMessaging = new FirebaseMessaging();
 
   @override
   void initState() {
+    super.initState();
+    FSM();
+    getCredential();
+  }
+
+  void FSM() async{
     super.initState();
 
     _firebaseMessaging.configure(
@@ -44,13 +51,11 @@ class _LoginPageState extends State<LoginPage> {
     _firebaseMessaging.requestNotificationPermissions(
         const IosNotificationSettings(sound: true, badge: true, alert: true));
     _firebaseMessaging.onIosSettingsRegistered
-      .listen((IosNotificationSettings settings){
-        print("Setting reg: $settings");
-      });
-    _firebaseMessaging.getToken().then((token) {
-      print(token);
+        .listen((IosNotificationSettings settings){
+      print("Setting reg: $settings");
     });
-    getCredential();
+    this.token = await _firebaseMessaging.getToken();
+    print(this.token);
   }
 
   @override
@@ -170,7 +175,7 @@ class _LoginPageState extends State<LoginPage> {
         var Authorization =
             base64.encode(utf8.encode(username.text + ':' + password.text));
         var response = await http.get(
-            '${ServerUrlNoAuth}/hs/mobilecheckcheck/login?user=${username.text}&pass=${password.text}',
+            '${ServerUrlNoAuth}/hs/mobilecheckcheck/login?user=${username.text}&pass=${password.text}&id_device=${token}',
             headers: {'content-type': 'application/json'});
         if (response.statusCode == 200) {
           LoadingStop(context);
