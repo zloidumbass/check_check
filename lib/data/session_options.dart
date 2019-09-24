@@ -1,3 +1,4 @@
+String UserPhone = '';
 String User = '';
 String UserUID = '';
 String AuthorizationString = '';
