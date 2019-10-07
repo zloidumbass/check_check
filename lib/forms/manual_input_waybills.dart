@@ -289,7 +289,7 @@ class ManualInputWaybillsPageState extends State<ManualInputWaybillsPage> {
       var max_km = 0.00;
       for (var waybills_route in waybills_route_data) {
         max_km += waybills_route['ПройденныйКилометраж'];
-        max_km = double.parse(max_km.toStringAsFixed(3));
+        max_km = double.parse(max_km.toStringAsFixed(2));
       };
       if (widget.max_amount == 10 * max_km / 100) {
         submit();

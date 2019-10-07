@@ -293,7 +293,7 @@ class ManualEditWaybillsStep2State extends State<ManualEditWaybillsStep2> {
       var max_km = 0.00;
       for (var waybills_route in waybills_route_data) {
         max_km = max_km + waybills_route['ПройденныйКилометраж'];
-        max_km = double.parse(max_km.toStringAsFixed(3));
+        max_km = double.parse(max_km.toStringAsFixed(2));
         waybills_route['ДатаВыезда'] =
             waybills_route['ДатаВыезда'].substring(0, 10);
         waybills_route['ДатаВозвращения'] =
