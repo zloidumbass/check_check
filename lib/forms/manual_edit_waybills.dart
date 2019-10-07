@@ -122,10 +122,10 @@ class ManualEditWaybillsStep1State extends State<ManualEditWaybillsStep1> {
     }
 
     List sending_check_data = [];
-    //sending_check_data.add('1');
     var max_amount = 0.00;
     for (var check_selected in check_selected_data) {
       max_amount += check_selected.amount;
+      max_amount = double.parse(max_amount.toStringAsFixed(3));
       sending_check_data.add('{"key" : "${check_selected.UID}"}');
     }
     print(max_amount);
@@ -293,6 +293,7 @@ class ManualEditWaybillsStep2State extends State<ManualEditWaybillsStep2> {
       var max_km = 0.00;
       for (var waybills_route in waybills_route_data) {
         max_km = max_km + waybills_route['ПройденныйКилометраж'];
+        max_km = double.parse(max_km.toStringAsFixed(3));
         waybills_route['ДатаВыезда'] =
             waybills_route['ДатаВыезда'].substring(0, 10);
         waybills_route['ДатаВозвращения'] =

@@ -121,6 +121,7 @@ class ManualInputWaybillsStep1State extends State<ManualInputWaybillsStep1> {
     var max_amount = 0.00;
     for (var check_selected in check_selected_data) {
       max_amount += check_selected.amount;
+      max_amount = double.parse(max_amount.toStringAsFixed(3));
       sending_check_data.add('{"key" : "${check_selected.UID}"}');
     }
     Navigator.push(
@@ -287,8 +288,9 @@ class ManualInputWaybillsPageState extends State<ManualInputWaybillsPage> {
     } else {
       var max_km = 0.00;
       for (var waybills_route in waybills_route_data) {
-        max_km = max_km + waybills_route['ПройденныйКилометраж'];
-      }
+        max_km += waybills_route['ПройденныйКилометраж'];
+        max_km = double.parse(max_km.toStringAsFixed(3));
+      };
       if (widget.max_amount == 10 * max_km / 100) {
         submit();
       } else {
