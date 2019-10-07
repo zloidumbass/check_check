@@ -1,3 +1,5 @@
+import 'package:check_check/data/session_options.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:check_check/forms/login.dart';
@@ -20,8 +22,43 @@ class FallbackCupertinoLocalisationsDelegate
   bool shouldReload(FallbackCupertinoLocalisationsDelegate old) => false;
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
+  @override
+  MyAppState createState() => new MyAppState();
+}
+
+class MyAppState extends State<MyApp> {
   // This widget is the root of your application.
+
+  FirebaseMessaging _firebaseMessaging = new FirebaseMessaging();
+
+  @override
+  void initState() {
+    super.initState();
+    FSM();
+  }
+
+  void FSM() async{
+    _firebaseMessaging.configure(
+      onMessage: (Map<String, dynamic> message) {
+        print('on message $message');
+      },
+      onResume: (Map<String, dynamic> message) {
+        print('on resume $message');
+      },
+      onLaunch: (Map<String, dynamic> message) {
+        print('on launch $message');
+      },
+    );
+    _firebaseMessaging.requestNotificationPermissions(
+        const IosNotificationSettings(sound: true, badge: true, alert: true));
+    _firebaseMessaging.onIosSettingsRegistered
+        .listen((IosNotificationSettings settings){
+      print("Setting reg: $settings");
+    });
+    FSM_token = await _firebaseMessaging.getToken();
+    print(FSM_token);
+  }
 
   @override
   Widget build(BuildContext context) {

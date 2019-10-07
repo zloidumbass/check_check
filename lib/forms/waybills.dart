@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:check_check/data/static_variable.dart';
 import 'package:check_check/data/session_options.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' show get;
 import 'dart:convert';
@@ -108,6 +109,7 @@ class WaybillsPage extends StatefulWidget {
 }
 
 class WaybillsPageState extends State<WaybillsPage> {
+  int sharedValue = 0;
   List<WaybillData> waybill_data;
   final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey =
       new GlobalKey<RefreshIndicatorState>();
@@ -134,7 +136,7 @@ class WaybillsPageState extends State<WaybillsPage> {
   //Future is n object representing a delayed computation.
   Future<List<WaybillData>> downloadWaybillData() async {
     list_lock = true;
-    final jsonEndpoint = '${ServerUrl}/hs/mobilecheckcheck/addwb';
+    final jsonEndpoint = '${ServerUrl}/hs/mobilecheckcheck/addwb?selection_value=${sharedValue}';
     try {
       final response = await get(jsonEndpoint,
           headers: {'Authorization': 'Basic ${AuthorizationString}'});
@@ -157,41 +159,65 @@ class WaybillsPageState extends State<WaybillsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return CreateDefaultMasterForm(2, getBody(), context, turnOnUpdate);
+    final Map<int, Widget> children = const <int, Widget>{
+      0: Padding(padding: EdgeInsets.all(10), child: Text('Все')),
+      1: Padding(padding: EdgeInsets.all(10), child: Text('В работе')),
+      2: Padding(padding: EdgeInsets.all(10), child: Text('Архив')),
+    };
+
+    return CreateDefaultMasterForm(
+        2,
+        new Center(
+            child: new Column(children: <Widget>[
+          new SizedBox(
+              width: MediaQuery.of(context).size.width,
+              child: new CupertinoSegmentedControl<int>(
+                padding: EdgeInsets.all(5.0),
+                children: children,
+                onValueChanged: (int newValue) {
+                  setState(() {
+                    sharedValue = newValue;
+                    waybill_data = null;
+                    refreshList();
+                  });
+                },
+                groupValue: sharedValue,
+              )),
+          new Expanded(child: getBody())
+        ])),
+        context,
+        turnOnUpdate);
   }
 
   Widget getBody() {
     if (waybill_data == null) {
-      return new Center(
-          child: new CircularProgressIndicator());
+      return new Center(child: new CircularProgressIndicator());
     } else if (waybill_data.length == 0) {
-      return new Center(
-          child: new RefreshIndicator(
+      return new RefreshIndicator(
               key: _refreshIndicatorKey,
               onRefresh: this.refreshList,
               child: new ListView(children: <Widget>[
                 new Container(
                   child: Text('Список пуст'),
                   width: MediaQuery.of(context).size.width,
-                  height: MediaQuery.of(context).size.height *0.8,
+                  height: MediaQuery.of(context).size.height * 0.8,
                   alignment: FractionalOffset.center,
                 )
-              ])));
+              ]));
     } else {
-      return new Center(
-          child: new RefreshIndicator(
-              key: _refreshIndicatorKey,
-              onRefresh: this.refreshList,
-              child: ListView.builder(
-                itemCount: waybill_data.length,
-                itemBuilder: (context, int currentIndex) =>
-                    new Column(children: <Widget>[
-                  new Divider(
-                    height: 10.0,
-                  ),
-                  this.CustomListViewTile(waybill_data[currentIndex])
-                ]),
-              )));
+      return new RefreshIndicator(
+                key: _refreshIndicatorKey,
+                onRefresh: this.refreshList,
+                child: ListView.builder(
+                  itemCount: waybill_data.length,
+                  itemBuilder: (context, int currentIndex) =>
+                      new Column(children: <Widget>[
+                    new Divider(
+                      height: 10.0,
+                    ),
+                    this.CustomListViewTile(waybill_data[currentIndex])
+                  ]),
+                ));
     }
   }
 

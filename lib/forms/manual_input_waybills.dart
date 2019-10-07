@@ -95,7 +95,15 @@ class ManualInputWaybillsStep1 extends StatefulWidget {
 
 class ManualInputWaybillsStep1State extends State<ManualInputWaybillsStep1> {
   List<CheckData> check_selected_data = [];
-  List<CheckData> check_data = [];
+  List<CheckData> check_data;
+  final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey =
+      new GlobalKey<RefreshIndicatorState>();
+
+  @override
+  void initState() {
+    super.initState();
+    refreshList();
+  }
 
   //Кнопка Далее/Очистить все
   nextPage() {
@@ -136,13 +144,21 @@ class ManualInputWaybillsStep1State extends State<ManualInputWaybillsStep1> {
               .map((waybill_data) => new CheckData.fromJson(waybill_data))
               .toList();
         } else
-          throw 'Список пуст';
+          return List<CheckData>();
       } else
         print(response.body);
-      throw 'Не удалось загрузить список';
+      return List<CheckData>();
     } catch (error) {
-      throw error.toString();
+      return List<CheckData>();
     }
+  }
+
+  Future<Null> refreshList() async {
+    this._refreshIndicatorKey.currentState?.show(atTop: true);
+    check_data = await this.downloadCheckData();
+    setState(() {});
+
+    return null;
   }
 
   @override
@@ -151,60 +167,60 @@ class ManualInputWaybillsStep1State extends State<ManualInputWaybillsStep1> {
         appBar: new AppBar(
           title: new Text('Отправка путевого листа'),
         ),
-        body: new ListView(children: <Widget>[
-          new Center(
-            child: new FutureBuilder<List<CheckData>>(
-              future: this.downloadCheckData(),
-              builder: (context, snapshot) {
-                if (snapshot.hasData) {
-                  check_data = snapshot.data;
-                  return new Container(
-                      height: MediaQuery.of(context).size.height - 160,
-                      child: ListView.builder(
-                        itemCount: check_data.length,
-                        itemBuilder: (context, int currentIndex) =>
-                            new Column(children: <Widget>[
-                              new Divider(
-                                height: 10.0,
-                              ),
-                              CustomListViewTile(
-                                  check_data[currentIndex], check_selected_data)
-                            ]),
-                      ));
-                } else if (snapshot.hasError) {
-                  return Padding(
-                    padding: EdgeInsets.fromLTRB(
-                        10,
-                        (MediaQuery.of(context).size.height - 180) / 2,
-                        10,
-                        (MediaQuery.of(context).size.height - 180) / 2),
-                    child: Text(
-                      '${snapshot.error}',
-                      textAlign: TextAlign.left,
-                    ),
-                  );
-                }
-                return Container(
-                    alignment: FractionalOffset.center,
-                    height: MediaQuery.of(context).size.height - 160,
-                    child: new CircularProgressIndicator());
-              },
-            ),
-          ),
-          new Container(
-            decoration:
-                new BoxDecoration(border: Border.all(color: Colors.black)),
-            child: new ListTile(
-              title: new Text(
-                "Далее",
-                textAlign: TextAlign.center,
+        body: new Center(
+            child: new Column(
+          children: <Widget>[
+            Expanded(
+                child: getBody()),
+            new SizedBox(
+                width: MediaQuery.of(context).size.width,
+                child: new Container(
+              decoration:
+                  new BoxDecoration(border: Border.all(color: Colors.black)),
+              child: new ListTile(
+                title: new Text(
+                  "Далее",
+                  textAlign: TextAlign.center,
+                ),
+                onTap: this.nextPage,
               ),
-              onTap: this.nextPage,
-            ),
-            margin:
-                new EdgeInsets.only(left: 20, right: 20, bottom: 20, top: 10),
-          ),
-        ]));
+              margin:
+                  new EdgeInsets.only(left: 20, right: 20, bottom: 20, top: 10),
+            )),
+          ],
+        )));
+  }
+
+  Widget getBody() {
+    if (check_data == null) {
+      return new Center(child: new CircularProgressIndicator());
+    } else if (check_data.length == 0) {
+      return new RefreshIndicator(
+          key: _refreshIndicatorKey,
+          onRefresh: this.refreshList,
+          child: new ListView(children: <Widget>[
+            new Container(
+              child: Text('Список пуст'),
+              width: MediaQuery.of(context).size.width,
+              height: MediaQuery.of(context).size.height * 0.8,
+              alignment: FractionalOffset.center,
+            )
+          ]));
+    } else {
+      return new RefreshIndicator(
+          key: _refreshIndicatorKey,
+          onRefresh: this.refreshList,
+          child: ListView.builder(
+            itemCount: check_data.length,
+            itemBuilder: (context, int currentIndex) =>
+                new Column(children: <Widget>[
+              new Divider(
+                height: 10.0,
+              ),
+              CustomListViewTile(check_data[currentIndex], check_selected_data)
+            ]),
+          ));
+    }
   }
 }
 
@@ -363,12 +379,12 @@ class ManualInputWaybillsPageState extends State<ManualInputWaybillsPage> {
                           itemCount: check_data.length,
                           itemBuilder: (context, int currentIndex) =>
                               new Column(children: <Widget>[
-                                new Divider(
-                                  height: 10.0,
-                                ),
-                                CreateCustomListViewTile(
-                                    check_data[currentIndex], currentIndex)
-                              ]),
+                            new Divider(
+                              height: 10.0,
+                            ),
+                            CreateCustomListViewTile(
+                                check_data[currentIndex], currentIndex)
+                          ]),
                         ));
                   }
                   {

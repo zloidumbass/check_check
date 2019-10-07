@@ -139,6 +139,7 @@ class CheckPage extends StatefulWidget {
 }
 
 class CheckPageState extends State<CheckPage> {
+  int sharedValue = 0;
   List<CheckData> check_data;
   final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey =
       new GlobalKey<RefreshIndicatorState>();
@@ -165,7 +166,7 @@ class CheckPageState extends State<CheckPage> {
   //Future is n object representing a delayed computation.
   Future<List<CheckData>> downloadCheckData() async {
     list_lock = true;
-    final jsonEndpoint = '${ServerUrl}/hs/mobilecheckcheck/addrecordqr';
+    final jsonEndpoint = '${ServerUrl}/hs/mobilecheckcheck/addrecordqr?selection_value=${sharedValue}';
     try {
       final response = await http.get(jsonEndpoint,
           headers: {'Authorization': 'Basic ${AuthorizationString}'});
@@ -188,41 +189,71 @@ class CheckPageState extends State<CheckPage> {
 
   @override
   Widget build(BuildContext context) {
-    return CreateDefaultMasterForm(1, getBody(), context, turnOnUpdate);
+    final Map<int, Widget> children = const <int, Widget>{
+      0: Padding(
+          padding: EdgeInsets.all(10),
+          child: Text('Все')),
+      1: Padding(
+          padding: EdgeInsets.all(10),
+          child: Text('В работе')),
+      2: Padding(
+          padding: EdgeInsets.all(10),
+          child: Text('Архив')),
+    };
+
+    return CreateDefaultMasterForm(
+        1,
+        new Center(
+            child: new Column(children: <Widget>[
+              new SizedBox(
+                  width: MediaQuery.of(context).size.width,
+                  child: new CupertinoSegmentedControl<int>(
+                    padding: EdgeInsets.all(5.0),
+                    children: children,
+                    onValueChanged: (int newValue) {
+                      setState(() {
+                        sharedValue = newValue;
+                        check_data = null;
+                        refreshList();
+                      });
+                    },
+                    groupValue: sharedValue,
+                  )),
+              new Expanded(child: getBody())
+            ])),
+        context,
+        turnOnUpdate);
   }
 
   Widget getBody() {
     if (check_data == null) {
-      return new Center(
-          child: new CircularProgressIndicator());
+      return new Center(child: new CircularProgressIndicator());
     } else if (check_data.length == 0) {
-      return new Center(
-          child: new RefreshIndicator(
+      return new RefreshIndicator(
               key: _refreshIndicatorKey,
               onRefresh: this.refreshList,
               child: new ListView(children: <Widget>[
                 new Container(
                   child: Text('Список пуст'),
                   width: MediaQuery.of(context).size.width,
-                  height: MediaQuery.of(context).size.height *0.8,
+                  height: MediaQuery.of(context).size.height * 0.8,
                   alignment: FractionalOffset.center,
                 )
-              ])));
+              ]));
     } else {
-      return new Center(
-          child: new RefreshIndicator(
+      return new RefreshIndicator(
               key: _refreshIndicatorKey,
               onRefresh: this.refreshList,
               child: ListView.builder(
                 itemCount: check_data.length,
                 itemBuilder: (context, int currentIndex) =>
-                new Column(children: <Widget>[
+                    new Column(children: <Widget>[
                   new Divider(
                     height: 10.0,
                   ),
                   this.CustomListViewTile(check_data[currentIndex])
                 ]),
-              )));
+              ));
     }
   }
 
