@@ -17,30 +17,38 @@ class CustomListViewTile extends StatefulWidget {
 
   @override
   CustomListViewTileState createState() {
-    return new CustomListViewTileState(
-        this.check_data, this.cheks_selected_data);
+    return new CustomListViewTileState();
   }
 }
 
 class CustomListViewTileState extends State<CustomListViewTile> {
-  final CheckData check_data;
-  List cheks_selected_data;
+  
+  bool isSelected = false;
+  Color mycolor = Colors.white;
 
-  CustomListViewTileState(this.check_data, this.cheks_selected_data);
-
-  var isSelected = false;
-  var mycolor = Colors.white;
+  @override
+  void initState() {
+    super.initState();
+    isSelected = widget.cheks_selected_data.contains(widget.check_data);
+    if (widget.cheks_selected_data.contains(widget.check_data)) {
+      mycolor = Colors.grey[300];
+      isSelected = true;
+    } else {
+      mycolor = Colors.white;
+      isSelected = false;
+    }
+  }
 
   selectedCard() {
     setState(() {
       if (isSelected) {
         mycolor = Colors.white;
         isSelected = false;
-        cheks_selected_data.remove(check_data);
+        widget.cheks_selected_data.remove(widget.check_data);
       } else {
         mycolor = Colors.grey[300];
         isSelected = true;
-        cheks_selected_data.add(check_data);
+        widget.cheks_selected_data.add(widget.check_data);
       }
     });
   }
@@ -52,17 +60,17 @@ class CustomListViewTileState extends State<CustomListViewTile> {
         new ListTile(
             selected: isSelected,
             leading: new Container(
-              child: check_data.icon,
+              child: widget.check_data.icon,
             ),
             title: new Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
                 new Text(
-                  check_data.name,
+                  widget.check_data.name,
                   style: new TextStyle(fontWeight: FontWeight.bold),
                 ),
                 new Text(
-                  check_data.status,
+                  widget.check_data.status,
                   style: new TextStyle(color: Colors.grey, fontSize: 13.0),
                 ),
               ],
@@ -70,7 +78,7 @@ class CustomListViewTileState extends State<CustomListViewTile> {
             subtitle: new Container(
               padding: const EdgeInsets.only(top: 5.0),
               child: new Text(
-                'Сумма: ' + check_data.doc_sum,
+                'Сумма: ' + widget.check_data.doc_sum,
                 style: new TextStyle(color: Colors.grey, fontSize: 13.0),
               ),
             ),

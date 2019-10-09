@@ -17,44 +17,39 @@ class CustomListViewTile extends StatefulWidget {
 
   @override
   CustomListViewTileState createState() {
-    return new CustomListViewTileState(
-        this.check_data, this.cheks_selected_data);
+    return new CustomListViewTileState();
   }
 }
 
 class CustomListViewTileState extends State<CustomListViewTile> {
-  final CheckData check_data;
-  List cheks_selected_data;
-
-  CustomListViewTileState(this.check_data, this.cheks_selected_data);
 
   bool isSelected;
   Color mycolor;
 
   @override
   void initState() {
-    isSelected = check_data.check_select;
-    updateSelectedCard();
-  }
-
-  updateSelectedCard() {
-    if (isSelected) {
+    super.initState();
+    isSelected = widget.cheks_selected_data.contains(widget.check_data);
+    if (widget.cheks_selected_data.contains(widget.check_data)) {
       mycolor = Colors.grey[300];
-      cheks_selected_data.add(check_data);
+      isSelected = true;
     } else {
       mycolor = Colors.white;
-      cheks_selected_data.remove(check_data);
+      isSelected = false;
     }
   }
 
   selectedCard() {
     setState(() {
       if (isSelected) {
+        mycolor = Colors.white;
         isSelected = false;
+        widget.cheks_selected_data.remove(widget.check_data);
       } else {
+        mycolor = Colors.grey[300];
         isSelected = true;
+        widget.cheks_selected_data.add(widget.check_data);
       }
-      updateSelectedCard();
     });
   }
 
@@ -65,17 +60,17 @@ class CustomListViewTileState extends State<CustomListViewTile> {
         new ListTile(
             selected: isSelected,
             leading: new Container(
-              child: check_data.icon,
+              child: widget.check_data.icon,
             ),
             title: new Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
                 new Text(
-                  check_data.name,
+                  widget.check_data.name,
                   style: new TextStyle(fontWeight: FontWeight.bold),
                 ),
                 new Text(
-                  check_data.status,
+                  widget.check_data.status,
                   style: new TextStyle(color: Colors.grey, fontSize: 13.0),
                 ),
               ],
@@ -83,7 +78,7 @@ class CustomListViewTileState extends State<CustomListViewTile> {
             subtitle: new Container(
               padding: const EdgeInsets.only(top: 5.0),
               child: new Text(
-                'Сумма: ' + check_data.doc_sum,
+                'Сумма: ' + widget.check_data.doc_sum,
                 style: new TextStyle(color: Colors.grey, fontSize: 13.0),
               ),
             ),
@@ -171,6 +166,12 @@ class ManualEditWaybillsStep1State extends State<ManualEditWaybillsStep1> {
               builder: (context, snapshot) {
                 if (snapshot.hasData) {
                   check_data = snapshot.data;
+                  check_selected_data.clear();
+                  for (var check_element in check_data) {
+                    if (check_element.check_select) {
+                      check_selected_data.add(check_element);
+                    };
+                  }
                   return new Container(
                       height: MediaQuery.of(context).size.height - 160,
                       child: ListView.builder(
