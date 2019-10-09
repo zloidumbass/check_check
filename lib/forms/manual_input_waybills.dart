@@ -22,7 +22,7 @@ class CustomListViewTile extends StatefulWidget {
 }
 
 class CustomListViewTileState extends State<CustomListViewTile> {
-  
+
   bool isSelected = false;
   Color mycolor = Colors.white;
 
