@@ -9,8 +9,10 @@ import 'dart:convert';
 
 import '../module_common.dart';
 
+//Глобальные переменные модуля
 final int MaxLenghtNom = 14;
 
+//Классы данных
 class CheckData {
   final String name, doc_sum, full_name, date_time, sum, fn, fd, fpd, UID;
   final double amount;
@@ -131,6 +133,7 @@ getStatus(String status) {
   return representation_status;
 }
 
+//Исполняемые классы
 class CheckPage extends StatefulWidget {
   @override
   CheckPageState createState() {
@@ -144,11 +147,52 @@ class CheckPageState extends State<CheckPage> {
   final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey =
       new GlobalKey<RefreshIndicatorState>();
   bool list_lock = false;
+  ScrollController _scrollController = new ScrollController();
+
+  void _getMoreData() async {
+    if (!list_lock) {
+      setState(() {
+        list_lock = true;
+      });
+      final jsonEndpoint = '${ServerUrl}/hs/mobilecheckcheck/addrecordqr?selection_value=${this.sharedValue}&last_index=${this.check_data.length}';
+      try {
+        final response = await http.get(jsonEndpoint,
+            headers: {'Authorization': 'Basic ${AuthorizationString}'});
+        if (response.statusCode == 200) {
+          List check_data = json.decode(response.body);
+          List<CheckData> tempList = List<CheckData>();
+          for (var check_element in check_data.map((check_data) => new CheckData.fromJson(check_data)).toList()) {
+            tempList.add(check_element);
+          }
+          setState(() {
+            list_lock = false;
+            this.check_data.addAll(tempList);
+          });
+
+        } else
+          print(response.body);
+      } catch (error) {
+        print(error.toString());
+      }
+    }
+  }
 
   @override
   void initState() {
     super.initState();
     refreshList();
+    _scrollController.addListener(() {
+      if (_scrollController.position.pixels ==
+          _scrollController.position.maxScrollExtent) {
+        _getMoreData();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   turnOnUpdate() {
@@ -183,6 +227,7 @@ class CheckPageState extends State<CheckPage> {
         print(response.body);
       return List<CheckData>();
     } catch (error) {
+      print(error.toString());
       return List<CheckData>();
     }
   }
@@ -232,29 +277,51 @@ class CheckPageState extends State<CheckPage> {
       return new RefreshIndicator(
               key: _refreshIndicatorKey,
               onRefresh: this.refreshList,
-              child: new ListView(children: <Widget>[
-                new Container(
-                  child: Text('Список пуст'),
-                  width: MediaQuery.of(context).size.width,
-                  height: MediaQuery.of(context).size.height * 0.8,
-                  alignment: FractionalOffset.center,
-                )
-              ]));
+              child: new ListView(
+                  children: <Widget>[
+                    new Container(
+                      child: Text('Список пуст'),
+                      width: MediaQuery.of(context).size.width,
+                      height: MediaQuery.of(context).size.height * 0.8,
+                      alignment: FractionalOffset.center,
+                    )
+                  ]
+              )
+      );
     } else {
       return new RefreshIndicator(
               key: _refreshIndicatorKey,
               onRefresh: this.refreshList,
               child: ListView.builder(
-                itemCount: check_data.length,
-                itemBuilder: (context, int currentIndex) =>
-                    new Column(children: <Widget>[
-                  new Divider(
-                    height: 10.0,
-                  ),
-                  this.CustomListViewTile(check_data[currentIndex])
-                ]),
+                physics: const AlwaysScrollableScrollPhysics(),
+                controller: _scrollController,
+                itemCount: check_data.length+1,
+                itemBuilder: (context, int currentIndex) {
+                  if (currentIndex == check_data.length) {
+                    return _buildProgressIndicator();
+                  } else {
+                    return new Column(children: <Widget>[
+                      new Divider(
+                        height: 10.0,
+                      ),
+                      this.CustomListViewTile(check_data[currentIndex])
+                    ]);
+                  }
+                }
               ));
     }
+  }
+
+  Widget _buildProgressIndicator() {
+    return new Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: new Center(
+        child: new Opacity(
+          opacity: list_lock ? 1.0 : 00,
+          child: new CircularProgressIndicator(),
+        ),
+      ),
+    );
   }
 
   //ЭЛЕМЕНТ СПИСКА

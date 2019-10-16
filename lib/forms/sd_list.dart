@@ -356,32 +356,90 @@ class SDPage extends StatefulWidget {
 
 class SDPageState extends State<SDPage> {
   List<SDData> sd_data;
+  final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey =
+  new GlobalKey<RefreshIndicatorState>();
+  bool list_lock = false;
+  ScrollController _scrollController = new ScrollController();
+
+  void _getMoreData() async {
+    if (!list_lock) {
+      setState(() {
+        list_lock = true;
+      });
+      final jsonEndpoint =
+          '${ServerSDURL}?format=json&input_data=%7B"list_info"%3A%7B"row_count"%3A20%2C"start_index"%3A${sd_data.length}%2C"sort_field"%3A"id"%2C"sort_order"%3A"desc"%2C"get_total_count"%3Atrue%2C"search_fields"%3A%7B"requester.name"%3A"${UserUID}"%7D%7D%7D&TECHNICIAN_KEY=${SDTechnicianKey}';
+      try {
+        final response = await http.get(jsonEndpoint);
+        if (response.statusCode == 200) {
+          List sd_data = json.decode(response.body);
+          List<SDData> tempList = List<SDData>();
+          for (var sd_element in sd_data.map((sd_data) => new SDData.fromJson(sd_data)).toList()) {
+            tempList.add(sd_element);
+          }
+          setState(() {
+            list_lock = false;
+            this.sd_data.addAll(tempList);
+          });
+
+        } else
+          print(response.body);
+      } catch (error) {
+        print(error.toString());
+      }
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    refreshList();
+    _scrollController.addListener(() {
+      if (_scrollController.position.pixels ==
+          _scrollController.position.maxScrollExtent) {
+        _getMoreData();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  turnOnUpdate() {
+    refreshList();
+  }
 
   Future<Null> refreshList() async {
+    this._refreshIndicatorKey.currentState?.show(atTop: true);
+    sd_data = await this.downloadSDData();
     setState(() {});
+
     return null;
   }
 
   //Future is n object representing a delayed computation.
   Future<List<SDData>> downloadSDData() async {
+    list_lock = true;
     final jsonEndpoint =
-        '${ServerSDURL}?format=json&input_data=%7B"list_info"%3A%7B"sort_field"%3A"id"%2C"sort_order"%3A"desc"%2C"get_total_count"%3Atrue%2C"search_fields"%3A%7B"requester.name"%3A"${UserUID}"%7D%7D%7D&TECHNICIAN_KEY=5941482B-E801-4520-ABBC-530CC9826A40';
-
+        '${ServerSDURL}?format=json&input_data=%7B"list_info"%3A%7B"row_count"%3A20%2C"sort_field"%3A"id"%2C"sort_order"%3A"desc"%2C"get_total_count"%3Atrue%2C"search_fields"%3A%7B"requester.name"%3A"${UserUID}"%7D%7D%7D&TECHNICIAN_KEY=5941482B-E801-4520-ABBC-530CC9826A40';
     try {
       final response = await http.get(jsonEndpoint);
       if (response.statusCode == 200) {
+        list_lock = false;
         List sd_data = json.decode(response.body)['requests'];
-
         if (sd_data.length != 0) {
           return sd_data
               .map((sd_data) => new SDData.fromJson(sd_data))
               .toList();
         } else
-          throw 'Список пуст';
+          return List<SDData>();
       } else
-        throw 'Не удалось загрузить список';
+        return List<SDData>();
     } catch (error) {
-      throw error.toString();
+      print(error.toString());
+      return List<SDData>();
     }
   }
 
@@ -392,46 +450,65 @@ class SDPageState extends State<SDPage> {
         title: Text("Заявки"),
       ),
       body: new Center(
-        child: new RefreshIndicator(
-          onRefresh: this.refreshList,
-          child: new FutureBuilder<List<SDData>>(
-            future: this.downloadSDData(),
-            builder: (context, snapshot) {
-              if (snapshot.hasData) {
-                sd_data = snapshot.data;
-                return ListView.builder(
-                  itemCount: sd_data.length,
-                  itemBuilder: (context, int currentIndex) =>
-                      new Column(children: <Widget>[
-                        new Divider(
-                          height: 10.0,
-                        ),
-                        this.CustomListViewTile(sd_data[currentIndex])
-                      ]),
-                );
-              } else if (snapshot.hasError) {
-                return new ListView(
-                  children: <Widget>[
-                    new Container(
-                      child: Text('${snapshot.error}',
-                          style: TextStyle(
-                              fontSize: 20, fontWeight: FontWeight.bold)),
-                      width: MediaQuery.of(context).size.width,
-                      height: MediaQuery.of(context).size.height / 1.5,
-                      alignment: FractionalOffset.center,
-                    )
-                  ],
-                );
-              }
-              return new CircularProgressIndicator();
-            },
-          ),
-        ),
+          child: getBody()
       ),
       floatingActionButton: FloatingActionButton(
         tooltip: 'Increment',
         child: Icon(Icons.add),
         onPressed: this.OpenForm,
+      ),
+    );
+  }
+
+  Widget getBody() {
+    if (sd_data == null) {
+      return new Center(child: new CircularProgressIndicator());
+    } else if (sd_data.length == 0) {
+      return new RefreshIndicator(
+          key: _refreshIndicatorKey,
+          onRefresh: this.refreshList,
+          child: new ListView(children: <Widget>[
+            new Container(
+              child: Text('Список пуст'),
+              width: MediaQuery.of(context).size.width,
+              height: MediaQuery.of(context).size.height * 0.8,
+              alignment: FractionalOffset.center,
+            )
+          ]));
+    } else {
+
+      return new RefreshIndicator(
+          key: _refreshIndicatorKey,
+          onRefresh: this.refreshList,
+          child: ListView.builder(
+              physics: const AlwaysScrollableScrollPhysics(),
+              controller: _scrollController,
+              itemCount: sd_data.length+1,
+              itemBuilder: (context, int currentIndex) {
+                print(currentIndex);
+                if (currentIndex == sd_data.length) {
+                  return _buildProgressIndicator();
+                } else {
+                  return new Column(children: <Widget>[
+                    new Divider(
+                      height: 10.0,
+                    ),
+                    this.CustomListViewTile(sd_data[currentIndex])
+                  ]);
+                }
+              }
+          ));
+    }
+  }
+
+  Widget _buildProgressIndicator() {
+    return new Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: new Center(
+        child: new Opacity(
+          opacity: list_lock ? 1.0 : 00,
+          child: new CircularProgressIndicator(),
+        ),
       ),
     );
   }

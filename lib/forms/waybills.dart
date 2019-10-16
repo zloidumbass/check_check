@@ -3,7 +3,7 @@ import 'package:check_check/data/static_variable.dart';
 import 'package:check_check/data/session_options.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' show get;
+import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 import '../module_common.dart';
@@ -114,11 +114,52 @@ class WaybillsPageState extends State<WaybillsPage> {
   final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey =
       new GlobalKey<RefreshIndicatorState>();
   bool list_lock = false;
+  ScrollController _scrollController = new ScrollController();
+
+  void _getMoreData() async {
+    if (!list_lock) {
+      setState(() {
+        list_lock = true;
+      });
+      final jsonEndpoint = '${ServerUrl}/hs/mobilecheckcheck/addwb?selection_value=${this.sharedValue}&last_index=${this.waybill_data.length}';
+      try {
+        final response = await http.get(jsonEndpoint,
+            headers: {'Authorization': 'Basic ${AuthorizationString}'});
+        if (response.statusCode == 200) {
+          List waybill_data = json.decode(response.body);
+          List<WaybillData> tempList = List<WaybillData>();
+          for (var waybill_element in waybill_data.map((waybill_data) => new WaybillData.fromJson(waybill_data)).toList()) {
+            tempList.add(waybill_element);
+          }
+          setState(() {
+            list_lock = false;
+            this.waybill_data.addAll(tempList);
+          });
+
+        } else
+          print(response.body);
+      } catch (error) {
+        print(error.toString());
+      }
+    }
+  }
 
   @override
   void initState() {
     super.initState();
     refreshList();
+    _scrollController.addListener(() {
+      if (_scrollController.position.pixels ==
+          _scrollController.position.maxScrollExtent) {
+        _getMoreData();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   turnOnUpdate() {
@@ -138,7 +179,7 @@ class WaybillsPageState extends State<WaybillsPage> {
     list_lock = true;
     final jsonEndpoint = '${ServerUrl}/hs/mobilecheckcheck/addwb?selection_value=${sharedValue}';
     try {
-      final response = await get(jsonEndpoint,
+      final response = await http.get(jsonEndpoint,
           headers: {'Authorization': 'Basic ${AuthorizationString}'});
       if (response.statusCode == 200) {
         list_lock = false;
@@ -194,33 +235,51 @@ class WaybillsPageState extends State<WaybillsPage> {
       return new Center(child: new CircularProgressIndicator());
     } else if (waybill_data.length == 0) {
       return new RefreshIndicator(
-              key: _refreshIndicatorKey,
-              onRefresh: this.refreshList,
-              child: new ListView(children: <Widget>[
-                new Container(
-                  child: Text('Список пуст'),
-                  width: MediaQuery.of(context).size.width,
-                  height: MediaQuery.of(context).size.height * 0.8,
-                  alignment: FractionalOffset.center,
-                )
-              ]));
+          key: _refreshIndicatorKey,
+          onRefresh: this.refreshList,
+          child: new ListView(children: <Widget>[
+            new Container(
+              child: Text('Список пуст'),
+              width: MediaQuery.of(context).size.width,
+              height: MediaQuery.of(context).size.height * 0.8,
+              alignment: FractionalOffset.center,
+            )
+          ]));
     } else {
       return new RefreshIndicator(
-                key: _refreshIndicatorKey,
-                onRefresh: this.refreshList,
-                child: ListView.builder(
-                  itemCount: waybill_data.length,
-                  itemBuilder: (context, int currentIndex) =>
-                      new Column(children: <Widget>[
+          key: _refreshIndicatorKey,
+          onRefresh: this.refreshList,
+          child: ListView.builder(
+              physics: const AlwaysScrollableScrollPhysics(),
+              controller: _scrollController,
+              itemCount: waybill_data.length+1,
+              itemBuilder: (context, int currentIndex) {
+                if (currentIndex == waybill_data.length) {
+                  return _buildProgressIndicator();
+                } else {
+                  return new Column(children: <Widget>[
                     new Divider(
                       height: 10.0,
                     ),
                     this.CustomListViewTile(waybill_data[currentIndex])
-                  ]),
-                ));
+                  ]);
+                }
+              }
+          ));
     }
   }
 
+  Widget _buildProgressIndicator() {
+    return new Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: new Center(
+        child: new Opacity(
+          opacity: list_lock ? 1.0 : 00,
+          child: new CircularProgressIndicator(),
+        ),
+      ),
+    );
+  }
   //ЭЛЕМЕНТ СПИСКА
   //////////////////////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////////////////////////////////

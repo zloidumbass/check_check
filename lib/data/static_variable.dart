@@ -1,4 +1,4 @@
-String ServerUrl = 'https://1c.open-com.ru/checks';
+String ServerUrl = 'http://192.168.102.107/checks';
 String ServerUrlNoAuth = 'https://1c.open-com.ru/checks_no_auth';
 
 // константы Service Desk
