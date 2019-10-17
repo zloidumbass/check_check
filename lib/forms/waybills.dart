@@ -224,61 +224,10 @@ class WaybillsPageState extends State<WaybillsPage> {
                 },
                 groupValue: sharedValue,
               )),
-          new Expanded(child: getBody())
+          new Expanded(child: CreateListForm(waybill_data, _refreshIndicatorKey, context, _scrollController, list_lock, CustomListViewTile, refreshList))
         ])),
         context,
         turnOnUpdate);
-  }
-
-  Widget getBody() {
-    if (waybill_data == null) {
-      return new Center(child: new CircularProgressIndicator());
-    } else if (waybill_data.length == 0) {
-      return new RefreshIndicator(
-          key: _refreshIndicatorKey,
-          onRefresh: this.refreshList,
-          child: new ListView(children: <Widget>[
-            new Container(
-              child: Text('Список пуст'),
-              width: MediaQuery.of(context).size.width,
-              height: MediaQuery.of(context).size.height * 0.8,
-              alignment: FractionalOffset.center,
-            )
-          ]));
-    } else {
-      return new RefreshIndicator(
-          key: _refreshIndicatorKey,
-          onRefresh: this.refreshList,
-          child: ListView.builder(
-              physics: const AlwaysScrollableScrollPhysics(),
-              controller: _scrollController,
-              itemCount: waybill_data.length+1,
-              itemBuilder: (context, int currentIndex) {
-                if (currentIndex == waybill_data.length) {
-                  return _buildProgressIndicator();
-                } else {
-                  return new Column(children: <Widget>[
-                    new Divider(
-                      height: 10.0,
-                    ),
-                    this.CustomListViewTile(waybill_data[currentIndex])
-                  ]);
-                }
-              }
-          ));
-    }
-  }
-
-  Widget _buildProgressIndicator() {
-    return new Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: new Center(
-        child: new Opacity(
-          opacity: list_lock ? 1.0 : 00,
-          child: new CircularProgressIndicator(),
-        ),
-      ),
-    );
   }
   //ЭЛЕМЕНТ СПИСКА
   //////////////////////////////////////////////////////////////////////////////

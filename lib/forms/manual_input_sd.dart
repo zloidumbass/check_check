@@ -138,12 +138,6 @@ final controller_text = TextEditingController();
     String buildNumber = packageInfo.buildNumber;
     String operatingSystem = Platform.operatingSystem;
 
-    print(operatingSystem);
-    print(appName);
-    //print(packageName);
-    print(version);
-    print(buildNumber);
-
     String release = '';
     DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
     if (operatingSystem == 'android')  {

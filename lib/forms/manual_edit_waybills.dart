@@ -300,7 +300,11 @@ class ManualEditWaybillsStep2State extends State<ManualEditWaybillsStep2> {
         waybills_route['ДатаВозвращения'] =
             waybills_route['ДатаВозвращения'].substring(0, 10);
       }
-      if (widget.max_amount == 10 * max_km / 100) {
+
+      double max_amount_km = 10 * max_km / 100;
+      max_amount_km = double.parse(max_amount_km.toStringAsFixed(3));
+
+      if (widget.max_amount == max_amount_km) {
         submit();
       } else {
         print(widget.max_amount);
@@ -310,7 +314,7 @@ class ManualEditWaybillsStep2State extends State<ManualEditWaybillsStep2> {
               'Количество литров по чекам: ' +
                   widget.max_amount.toString() +
                   ', Количество литров по точкам: ' +
-                  (10 * max_km / 100).toString(),
+                  max_amount_km.toString(),
               style: new TextStyle(fontSize: 16.0),
             ));
       }

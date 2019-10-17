@@ -1,3 +1,4 @@
+import 'package:check_check/forms/about.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -82,7 +83,7 @@ LoadingStop(context) {
   Navigator.pop(context); //pop dialog
 } //Конец загрузки
 
-//мастер форма
+//Мастер формы
 CreateDefaultMasterForm(int index_form, Widget body, context, callback) {
   return Scaffold(
     appBar: AppBar(
@@ -165,7 +166,9 @@ CreateDefaultMasterForm(int index_form, Widget body, context, callback) {
                 new ListTile(
                   leading: new Icon(Icons.info),
                   title: new Text('О ПРОГРАММЕ'),
-                  onTap: () {},
+                  onTap: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (context)=> AboutPage()));
+                  },
                 ),
               ],
             ),
@@ -214,5 +217,58 @@ CreateDefaultMasterForm(int index_form, Widget body, context, callback) {
             },
           )
         : Container(),
+  );
+}
+
+CreateListForm(data, GlobalKey<RefreshIndicatorState> _refreshIndicatorKey, BuildContext context, ScrollController _scrollController, bool list_lock, CustomListViewTile, refreshListFunction) {
+  if (data == null) {
+    return new Center(child: new CircularProgressIndicator());
+  } else if (data.length == 0) {
+    return new RefreshIndicator(
+        key: _refreshIndicatorKey,
+        onRefresh: refreshListFunction,
+        child: new ListView(
+            children: <Widget>[
+              new Container(
+                child: Text('Список пуст'),
+                width: MediaQuery.of(context).size.width,
+                height: MediaQuery.of(context).size.height * 0.8,
+                alignment: FractionalOffset.center,
+              )
+            ]
+        )
+    );
+  } else {
+    return new RefreshIndicator(
+        key: _refreshIndicatorKey,
+        onRefresh: refreshListFunction,
+        child: ListView.builder(
+            physics: const AlwaysScrollableScrollPhysics(),
+            controller: _scrollController,
+            itemCount: data.length+1,
+            itemBuilder: (context, int currentIndex) {
+              if (currentIndex == data.length) {
+                return _buildProgressIndicator(list_lock);
+              } else {
+                return new Column(children: <Widget>[
+                  new Divider(
+                    height: 10.0,
+                  ),
+                  CustomListViewTile(data[currentIndex])
+                ]);
+              }
+            }
+        ));
+  }
+}
+Widget _buildProgressIndicator(list_lock) {
+  return new Padding(
+    padding: const EdgeInsets.all(8.0),
+    child: new Center(
+      child: new Opacity(
+        opacity: list_lock ? 1.0 : 00,
+        child: new CircularProgressIndicator(),
+      ),
+    ),
   );
 }
