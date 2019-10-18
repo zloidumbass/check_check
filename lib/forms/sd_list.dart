@@ -59,28 +59,12 @@ getIcon(String status) {
     return_icon = new Icon(Icons.access_time, color: Colors.amber);
   } else if (status == 'В работе') {
     return_icon = new Icon(Icons.access_time, color: Colors.amber);
-  } else if (status == 'На проверке') {
-    return_icon = new Icon(Icons.done, color: Colors.green);
-  } else if (status == 'Решено') {
-    return_icon = new Icon(Icons.done, color: Colors.green);
   } else if (status == 'Закрыт') {
     return_icon = new Icon(Icons.done, color: Colors.green);
   } else {
     return_icon = new Icon(Icons.error, color: Colors.red);
   }
   return return_icon;
-}
-
-getStatus(String status) {
-  String representation_status;
-  if (status == 'open') {
-    representation_status = 'open';
-  } else if (status == 'Success') {
-    representation_status = 'Success';
-  } else {
-    representation_status = 'Неизвестно';
-  }
-  return representation_status;
 }
 
 class SecondScreen extends StatefulWidget {
@@ -99,24 +83,24 @@ class _SecondScreenState extends State<SecondScreen> {
   //Future is n object representing a delayed computation.
   Future<List<SDListData>> downloadSDListData() async {
     final jsonEndpoint =
-        '${ServerSDURLPost}/${widget.value.workorderid}/allconversation?format=json&OPERATION_NAME=GET_ALL_CONVERSATIONS&TECHNICIAN_KEY=${SDTechnicianKey}';
-
+        '${ServerSDURL}/sdpapi/request/${widget.value.workorderid}/allconversation?format=json&OPERATION_NAME=GET_ALL_CONVERSATIONS&TECHNICIAN_KEY=${SDTechnicianKey}';
     try {
       final response = await http.get(jsonEndpoint);
 
       if (response.statusCode == 200) {
         List sdlist_data = json.decode(response.body)['operation']['details'];
-
-        if (sdlist_data.length != 0) {
+        if (sdlist_data != null && sdlist_data.length != 0) {
           return sdlist_data
               .map((sdlist_data) => new SDListData.fromJson(sdlist_data))
               .toList();
         } else
-          throw '-';
+          return List<SDListData>();
       } else
-        throw 'Не удалось загрузить обсуждение заявки';
+        print(response.statusCode.toString());
+        return List<SDListData>();
     } catch (error) {
-      throw error.toString();
+      print(error.toString());
+      return List<SDListData>();
     }
   }
 
@@ -284,13 +268,13 @@ class _SecondScreenState extends State<SecondScreen> {
     LoadingStart(context);
 
     try {
-      var response = await http.post(
-          '${ServerSDURLPost}/${widget.value.workorderid}?OPERATION_NAME=REPLY_REQUEST&TECHNICIAN_KEY=${SDTechnicianKey}&INPUT_DATA=<Details><parameter><name>to</name><value>${widget.value.technician_email}</value></parameter><parameter><name>subject</name><value>${widget.value.subject}</value></parameter><parameter><name>description</name><value>${controller_text.text}</value></parameter></Details>');
+      String JsonEndpoint = '${ServerSDURL}/sdpapi/request/${widget.value.workorderid}?OPERATION_NAME=REPLY_REQUEST&TECHNICIAN_KEY=${SDTechnicianKey}&INPUT_DATA=<Details><parameter><name>to</name><value>${widget.value.technician_email}</value></parameter><parameter><name>subject</name><value>${widget.value.subject}</value></parameter><parameter><name>description</name><value>${controller_text.text}</value></parameter></Details>';
+      var response = await http.post(JsonEndpoint);
 
       if (response.statusCode == 200) {
         LoadingStop(context);
         Navigator.pop(context);
-        print('ok!');
+        print(JsonEndpoint);
       } else {
         LoadingStop(context);
         CreateshowDialog(
@@ -367,7 +351,7 @@ class SDPageState extends State<SDPage> {
         list_lock = true;
       });
       final jsonEndpoint =
-          '${ServerSDURL}?format=json&input_data=%7B"list_info"%3A%7B"row_count"%3A20%2C"start_index"%3A${sd_data.length}%2C"sort_field"%3A"id"%2C"sort_order"%3A"desc"%2C"get_total_count"%3Atrue%2C"search_fields"%3A%7B"requester.name"%3A"${UserUID}"%7D%7D%7D&TECHNICIAN_KEY=${SDTechnicianKey}';
+          '${ServerSDURL}/api/v3/requests?format=json&input_data=%7B"list_info"%3A%7B"row_count"%3A20%2C"start_index"%3A${sd_data.length}%2C"sort_field"%3A"id"%2C"sort_order"%3A"desc"%2C"get_total_count"%3Atrue%2C"search_fields"%3A%7B"requester.name"%3A"${UserUID}"%7D%7D%7D&TECHNICIAN_KEY=${SDTechnicianKey}';
       try {
         final response = await http.get(jsonEndpoint);
         if (response.statusCode == 200) {
@@ -423,7 +407,7 @@ class SDPageState extends State<SDPage> {
   Future<List<SDData>> downloadSDData() async {
     list_lock = true;
     final jsonEndpoint =
-        '${ServerSDURL}?format=json&input_data=%7B"list_info"%3A%7B"row_count"%3A20%2C"sort_field"%3A"id"%2C"sort_order"%3A"desc"%2C"get_total_count"%3Atrue%2C"search_fields"%3A%7B"requester.name"%3A"${UserUID}"%7D%7D%7D&TECHNICIAN_KEY=5941482B-E801-4520-ABBC-530CC9826A40';
+        '${ServerSDURL}/api/v3/requests?format=json&input_data=%7B"list_info"%3A%7B"row_count"%3A20%2C"sort_field"%3A"id"%2C"sort_order"%3A"desc"%2C"get_total_count"%3Atrue%2C"search_fields"%3A%7B"requester.name"%3A"${UserUID}"%7D%7D%7D&TECHNICIAN_KEY=${SDTechnicianKey}';
     try {
       final response = await http.get(jsonEndpoint);
       if (response.statusCode == 200) {
@@ -455,15 +439,12 @@ class SDPageState extends State<SDPage> {
       floatingActionButton: FloatingActionButton(
         tooltip: 'Increment',
         child: Icon(Icons.add),
-        onPressed: this.OpenForm,
+        onPressed: () {
+          Navigator.push(
+              context, MaterialPageRoute(builder: (context) => ManualInputPage_SD(turnOnUpdate)));
+        },
       ),
     );
-  }
-
-  //Открытие формы по кнопке добавления
-  OpenForm() {
-    Navigator.push(
-        context, MaterialPageRoute(builder: (context) => ManualInputPage_SD()));
   }
 
   //ЭЛЕМЕНТ СПИСКА

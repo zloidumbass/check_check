@@ -13,6 +13,9 @@ import 'package:package_info/package_info.dart';
 
 //Форма ручного ввода
 class ManualInputPage_SD extends StatefulWidget {
+  Function callback;
+  ManualInputPage_SD(this.callback);
+
   @override
   State<StatefulWidget> createState() => _ManualInputPageState();
 }
@@ -48,15 +51,12 @@ final controller_text = TextEditingController();
     //Методы отправки
     LoadingStart(context);
     try {
-
-      var response = await http.post('${ServerSDURLPost}?OPERATION_NAME=ADD_REQUEST&TECHNICIAN_KEY=5941482B-E801-4520-ABBC-530CC9826A40&INPUT_DATA=<Details><parameter><name>requester</name><value>${UserUID}</value></parameter><parameter><name>subject</name><value>${controller_subject.text}</value></parameter><parameter><name>description</name><value>${controller_text.text+' '+DeviceAndPackageInfo}</value></parameter></Details>'
-
+      var response = await http.post('${ServerSDURL}/sdpapi/request?OPERATION_NAME=ADD_REQUEST&TECHNICIAN_KEY=${SDTechnicianKey}&INPUT_DATA=<Details><parameter><name>requester</name><value>${UserUID}</value></parameter><parameter><name>subject</name><value>${controller_subject.text}</value></parameter><parameter><name>description</name><value>${controller_text.text+' '+DeviceAndPackageInfo}</value></parameter></Details>'
       );
-
       if (response.statusCode == 200) {
         LoadingStop(context);
-         Navigator.pop(context);
-        print('ok!');
+        Navigator.pop(context);
+        widget.callback();
       } else {
         LoadingStop(context);
         print("Response status: ${response.statusCode}");
