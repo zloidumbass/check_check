@@ -266,7 +266,7 @@ class _SecondScreenState extends State<SecondScreen> {
 
     //Методы отправки
     LoadingStart(context);
-
+    print(widget.value.technician_email);
     try {
       String JsonEndpoint = '${ServerSDURL}/sdpapi/request/${widget.value.workorderid}?OPERATION_NAME=REPLY_REQUEST&TECHNICIAN_KEY=${SDTechnicianKey}&INPUT_DATA=<Details><parameter><name>to</name><value>${widget.value.technician_email}</value></parameter><parameter><name>subject</name><value>${widget.value.subject}</value></parameter><parameter><name>description</name><value>${controller_text.text}</value></parameter></Details>';
       var response = await http.post(JsonEndpoint);
