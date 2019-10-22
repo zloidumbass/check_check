@@ -157,7 +157,10 @@ class CheckPageState extends State<CheckPage> {
       final jsonEndpoint = '${ServerUrl}/hs/mobilecheckcheck/addrecordqr?selection_value=${this.sharedValue}&last_index=${this.check_data.length}';
       try {
         final response = await http.get(jsonEndpoint,
-            headers: {'Authorization': 'Basic ${AuthorizationString}'});
+            headers: {
+              'Authorization': 'Basic ${AuthorizationString}',
+              'content-version': Version+'.'+BuildNumber
+            });
         if (response.statusCode == 200) {
           List check_data = json.decode(response.body);
           List<CheckData> tempList = List<CheckData>();
@@ -213,7 +216,10 @@ class CheckPageState extends State<CheckPage> {
     final jsonEndpoint = '${ServerUrl}/hs/mobilecheckcheck/addrecordqr?selection_value=${sharedValue}';
     try {
       final response = await http.get(jsonEndpoint,
-          headers: {'Authorization': 'Basic ${AuthorizationString}'});
+          headers: {
+            'Authorization': 'Basic ${AuthorizationString}',
+            'content-version': Version+'.'+BuildNumber
+        });
       if (response.statusCode == 200) {
         List check_data = json.decode(response.body);
         if (check_data.length != 0) {

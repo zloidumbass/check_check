@@ -69,7 +69,8 @@ class AccountPageState extends State<AccountPage> {
               '{"individual":"${account_data.ref}","car":"${account_data.car_uid}"}',
           headers: {
             'content-type': 'application/json',
-            'Authorization': 'Basic ${AuthorizationString}'
+            'Authorization': 'Basic ${AuthorizationString}',
+            'content-version': Version+'.'+BuildNumber
           });
       if (response.statusCode != 200) {
         print("Response status: ${response.statusCode}");
@@ -92,7 +93,10 @@ class AccountPageState extends State<AccountPage> {
         '${ServerUrl}/hs/mobilecheckcheck/account?user=${UserUID}&version=2';
     try {
       final response = await http.get(jsonEndpoint_account,
-          headers: {'Authorization': 'Basic ${AuthorizationString}'});
+          headers: {
+            'Authorization': 'Basic ${AuthorizationString}',
+            'content-version': Version+'.'+BuildNumber
+          });
       if (response.statusCode == 200) {
         var account_data =
             new AccountData.fromJson(json.decode(response.body)[0]);
@@ -100,7 +104,10 @@ class AccountPageState extends State<AccountPage> {
         final jsonEndpoint_car = '${ServerUrl}/hs/mobilecheckcheck/cars';
         try {
           final response = await http.get(jsonEndpoint_car,
-              headers: {'Authorization': 'Basic ${AuthorizationString}'});
+              headers: {''
+                'Authorization': 'Basic ${AuthorizationString}',
+                'content-version': Version+'.'+BuildNumber
+              });
           if (response.statusCode == 200) {
             List car_data_list = json.decode(response.body);
             car_data = car_data_list

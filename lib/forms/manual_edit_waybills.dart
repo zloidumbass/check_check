@@ -137,7 +137,10 @@ class ManualEditWaybillsStep1State extends State<ManualEditWaybillsStep1> {
         '${ServerUrl}/hs/mobilecheckcheck/addrecordqr?status=ТребуетВводаПутевогоЛиста&waybills=${widget.value.id}';
     try {
       final response = await http.get(jsonEndpoint,
-          headers: {'Authorization': 'Basic ${AuthorizationString}'});
+          headers: {
+            'Authorization': 'Basic ${AuthorizationString}',
+            'content-version': Version+'.'+BuildNumber
+          });
       if (response.statusCode == 200) {
         List check_data = json.decode(response.body);
         if (check_data.length != 0) {
@@ -330,7 +333,8 @@ class ManualEditWaybillsStep2State extends State<ManualEditWaybillsStep2> {
               '{"type":"edit","waybills":"${widget.value.id}","user":"${UserUID}","tab1":${json.encode(waybills_route_data).toString()},"tab2":${widget.cheks_selected_data.toString()}}',
           headers: {
             'content-type': 'application/json',
-            'Authorization': 'Basic ${AuthorizationString}'
+            'Authorization': 'Basic ${AuthorizationString}',
+            'content-version': Version+'.'+BuildNumber
           });
       if (response.statusCode == 200) {
         LoadingStop(context);

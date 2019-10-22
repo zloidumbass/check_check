@@ -191,7 +191,8 @@ class _ManualInputPageState extends State<ManualInputPage> {
               '{"type":"add","user":"${UserUID}","datetime":"${formatter_send.format(formatter_datetime)}","s":"${controller_s.text}","fn":"${controller_fn.text}","fd":"${controller_fd.text}","fpd":"${controller_fpd.text}","photo_check":"${imageBase64}"}',
           headers: {
             'content-type': 'application/json',
-            'Authorization': 'Basic ${AuthorizationString}'
+            'Authorization': 'Basic ${AuthorizationString}',
+            'content-version': Version+'.'+BuildNumber
           });
       if (response.statusCode == 200) {
         LoadingStop(context);

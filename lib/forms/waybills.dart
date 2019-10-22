@@ -124,7 +124,10 @@ class WaybillsPageState extends State<WaybillsPage> {
       final jsonEndpoint = '${ServerUrl}/hs/mobilecheckcheck/addwb?selection_value=${this.sharedValue}&last_index=${this.waybill_data.length}';
       try {
         final response = await http.get(jsonEndpoint,
-            headers: {'Authorization': 'Basic ${AuthorizationString}'});
+            headers: {
+              'Authorization': 'Basic ${AuthorizationString}',
+              'content-version': Version+'.'+BuildNumber
+            });
         if (response.statusCode == 200) {
           List waybill_data = json.decode(response.body);
           List<WaybillData> tempList = List<WaybillData>();
@@ -180,7 +183,10 @@ class WaybillsPageState extends State<WaybillsPage> {
     final jsonEndpoint = '${ServerUrl}/hs/mobilecheckcheck/addwb?selection_value=${sharedValue}';
     try {
       final response = await http.get(jsonEndpoint,
-          headers: {'Authorization': 'Basic ${AuthorizationString}'});
+          headers: {
+            'Authorization': 'Basic ${AuthorizationString}',
+            'content-version': Version+'.'+BuildNumber
+          });
       if (response.statusCode == 200) {
         list_lock = false;
         List waybill_data = json.decode(response.body);

@@ -67,7 +67,8 @@ class ManualEditPageState extends State<ManualEditPage> {
           body: json_body,
           headers: {
             'content-type': 'application/json',
-            'Authorization': 'Basic ${AuthorizationString}'
+            'Authorization': 'Basic ${AuthorizationString}',
+            'content-version': Version+'.'+BuildNumber
           });
       if (response.statusCode == 200) {
         LoadingStop(context);

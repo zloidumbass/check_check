@@ -147,7 +147,10 @@ class _LoginPageState extends State<LoginPage> {
         var Authorization =
             base64.encode(utf8.encode(username.text + ':' + password.text));
         var response = await http.get(
-            '${ServerUrlNoAuth}/hs/mobilecheckcheck/login?user=${username.text}&pass=${password.text}&FSM_token=${FSM_token}');
+            '${ServerUrlNoAuth}/hs/mobilecheckcheck/login?user=${username.text}&pass=${password.text}&FSM_token=${FSM_token}',
+            headers: {
+              'content-version': Version+'.'+BuildNumber
+            });
         if (response.statusCode == 200) {
           LoadingStop(context);
           Navigator.of(context).pushAndRemoveUntil(

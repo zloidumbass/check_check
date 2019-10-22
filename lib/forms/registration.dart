@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:check_check/data/session_options.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -106,7 +107,9 @@ class RegistrationPageState extends State<RegistrationPage> {
         //Регистрация пользователя в фнс
         var response_fns = await http.post(
             'https://proverkacheka.nalog.ru:9999/v1/mobile/users/signup',
-            headers: {'content-type': 'application/json'},
+            headers: {
+              'content-type': 'application/json'
+            },
             body:
                 '{"email":"some@mail.com","name":"${controller_full_login.text}","phone":"${controller_login.text}"}');
         //Если успешно, то идём к шагу 2
@@ -120,7 +123,10 @@ class RegistrationPageState extends State<RegistrationPage> {
           //Смотрим есть ли пользователь у нас в базе
           var response_login = await http.get(
               '${ServerUrlNoAuth}/hs/mobilecheckcheck/login?user=${controller_login.text}&check=true',
-              headers: {'content-type': 'application/json'});
+              headers: {
+                'content-type': 'application/json',
+                'content-version': Version+'.'+BuildNumber
+              });
           //Если есть то пишем, что пользователь существует
           if (response_login.statusCode == 200) {
             LoadingStop(context);
@@ -193,7 +199,10 @@ class RegistrationPageState extends State<RegistrationPage> {
       try {
         var response = await http.post(
             '${ServerUrlNoAuth}/hs/mobilecheckcheck/login',
-            headers: {'content-type': 'application/json'},
+            headers: {
+              'content-type': 'application/json',
+              'content-version': Version+'.'+BuildNumber
+            },
             body:
                 '{"user":"${controller_login.text}","full_user":"${controller_full_login.text}","pass":"${controller_password.text}"}');
         if (response.statusCode == 200) {

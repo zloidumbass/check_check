@@ -145,7 +145,10 @@ class ManualInputWaybillsStep1State extends State<ManualInputWaybillsStep1> {
         '${ServerUrl}/hs/mobilecheckcheck/addrecordqr?status=ТребуетВводаПутевогоЛиста';
     try {
       final response = await http.get(jsonEndpoint,
-          headers: {'Authorization': 'Basic ${AuthorizationString}'});
+          headers: {
+            'Authorization': 'Basic ${AuthorizationString}',
+            'content-version': Version+'.'+BuildNumber
+          });
       if (response.statusCode == 200) {
         List check_data = json.decode(response.body);
         if (check_data.length != 0) {

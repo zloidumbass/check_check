@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:check_check/forms/login.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:package_info/package_info.dart';
 
 void main() => runApp(MyApp());
 
@@ -58,6 +59,12 @@ class MyAppState extends State<MyApp> {
     });
     FSM_token = await _firebaseMessaging.getToken();
     print(FSM_token);
+  }
+
+  void GetVersion() async{
+    PackageInfo packageInfo = await PackageInfo.fromPlatform();
+    Version = packageInfo.version;
+    BuildNumber = packageInfo.buildNumber;
   }
 
   @override
