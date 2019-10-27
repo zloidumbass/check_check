@@ -1,4 +1,6 @@
+import 'package:check_check/data/session_options.dart';
 import 'package:check_check/forms/about.dart';
+import 'package:check_check/forms/delivery.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -7,9 +9,7 @@ import 'forms/checks.dart';
 import 'forms/instruction.dart';
 import 'forms/login.dart';
 import 'forms/manual_input_cheks.dart';
-import 'forms/manual_input_waybills.dart';
 import 'forms/sd_list.dart';
-import 'forms/waybills.dart';
 
 //общие классы
 class NoAnimationMaterialPageRoute<T> extends MaterialPageRoute<T> {
@@ -88,10 +88,10 @@ CreateDefaultMasterForm(int index_form, Widget body, context, callback) {
   return Scaffold(
     appBar: AppBar(
       title: Text(index_form == 0
-          ? 'ИНСТРУКЦИЯ'
+          ? 'КАРТА'
           : index_form == 1
-              ? 'ЧЕКИ'
-              : index_form == 2 ? 'ПУТЕВЫЕ ЛИСТЫ' : 'НЕОПРЕДЕЛЕНО'),
+              ? 'ЗАКАЗЫ'
+              : index_form == 2 ? 'ДОСТАВКА' : 'НЕОПРЕДЕЛЕНО'),
     ),
     drawer: new Drawer(
       child: Column(
@@ -108,7 +108,7 @@ CreateDefaultMasterForm(int index_form, Widget body, context, callback) {
                 new ListTile(
                   selected: index_form == 0,
                   leading: new Icon(Icons.assignment),
-                  title: new Text('ИНСТРУКЦИЯ'),
+                  title: new Text('КАРТА'),
                   onTap: () {
                     if (index_form != 0) {
                       Navigator.of(context).pushAndRemoveUntil(
@@ -122,7 +122,7 @@ CreateDefaultMasterForm(int index_form, Widget body, context, callback) {
                 new ListTile(
                   selected: index_form == 1,
                   leading: new Icon(Icons.check_box),
-                  title: new Text('ЧЕКИ'),
+                  title: new Text('ЗАКАЗЫ'),
                   onTap: () {
                     if (index_form != 1) {
                       Navigator.of(context).pushAndRemoveUntil(
@@ -133,20 +133,20 @@ CreateDefaultMasterForm(int index_form, Widget body, context, callback) {
                     }
                   },
                 ),
-                new ListTile(
+                Courier ?new ListTile(
                   selected: index_form == 2,
                   leading: new Icon(Icons.swap_calls),
-                  title: new Text('ПУТЕВЫЕ ЛИСТЫ'),
+                  title: new Text('ДОСТАВКА'),
                   onTap: () {
                     if (index_form != 2) {
                       Navigator.of(context).pushAndRemoveUntil(
                           new NoAnimationMaterialPageRoute(
                               builder: (BuildContext context) =>
-                                  new WaybillsPage()),
+                                  new DeliveryPage()),
                           (Route<dynamic> route) => false);
                     }
                   },
-                ),
+                ):Container(),
                 new Divider(),
                 new ListTile(
                   leading: new Icon(Icons.account_circle),
@@ -197,7 +197,7 @@ CreateDefaultMasterForm(int index_form, Widget body, context, callback) {
       ),
     ),
     body: body,
-    floatingActionButton: index_form != 0
+    floatingActionButton: index_form == 1
         ? FloatingActionButton(
             tooltip: 'Increment',
             child: Icon(Icons.add),
@@ -208,11 +208,11 @@ CreateDefaultMasterForm(int index_form, Widget body, context, callback) {
                     MaterialPageRoute(
                         builder: (context) => ManualInputPage(callback)));
               } else if (index_form == 2) {
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) =>
-                            ManualInputWaybillsStep1(callback)));
+//                Navigator.push(
+//                    context,
+//                    MaterialPageRoute(
+//                        builder: (context) =>
+//                            ManualInputWaybillsStep1(callback)));
               }
             },
           )

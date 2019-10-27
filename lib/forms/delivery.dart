@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:check_check/data/static_variable.dart';
 import 'package:check_check/data/session_options.dart';
-import 'package:check_check/forms/manual_edit_cheks.dart';
+import 'package:check_check/forms/manual_edit_delivery.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -14,15 +14,14 @@ final int MaxLenghtNom = 14;
 
 //Классы данных
 class CheckData {
-  final String name, sum, addres_to, addres_do, UID, datetime, courier;
+  final String name, sum, addres_to, addres_do, UID, datetime;
   String status;
   final Icon icon;
 
   CheckData(
       {this.name,
-      this.datetime,
-      this.courier,
       this.sum,
+      this.datetime,
       this.icon,
       this.addres_to,
       this.addres_do,
@@ -30,18 +29,17 @@ class CheckData {
       this.UID});
 
   factory CheckData.fromJson(Map<String, dynamic> jsonData) {
-    print(jsonData['Ссылка_Key'].toString());
+    print(jsonData['АдресAФорм'].toString());
     return CheckData(
       name: 'Заказ №' +
           jsonData['Номер'].toString(),
       sum: jsonData['Сумма'].toString(),
-      addres_to: jsonData['АдресA'],
-      addres_do: jsonData['АдресB'],
+      addres_to: jsonData['АдресAФорм'].toString(),
+      addres_do: jsonData['АдресBФорм'].toString(),
       icon: getIcon(jsonData['Статус'].toString()),
       status: jsonData['Статус'].toString(),
       UID: jsonData['Ссылка_Key'].toString(),
       datetime: jsonData['ДатаВремяДоставки'].toString(),
-      courier: jsonData['Курьер_Key'].toString(),
     );
   }
 }
@@ -64,14 +62,14 @@ getIcon(String status) {
 }
 
 //Исполняемые классы
-class CheckPage extends StatefulWidget {
+class DeliveryPage extends StatefulWidget {
   @override
-  CheckPageState createState() {
-    return new CheckPageState();
+  DeliveryPageState createState() {
+    return new DeliveryPageState();
   }
 }
 
-class CheckPageState extends State<CheckPage> {
+class DeliveryPageState extends State<DeliveryPage> {
   int sharedValue = 0;
   List<CheckData> check_data;
   final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey =
@@ -143,7 +141,7 @@ class CheckPageState extends State<CheckPage> {
   //Future is n object representing a delayed computation.
   Future<List<CheckData>> downloadCheckData() async {
     list_lock = true;
-    final jsonEndpoint = '${ServerUrl}/hs/mobilecheckcheck/addrecordqr?selection_value=${sharedValue}&list_view=0';
+    final jsonEndpoint = '${ServerUrl}/hs/mobilecheckcheck/addrecordqr?selection_value=${sharedValue}&list_view=1';
     try {
       final response = await http.get(jsonEndpoint,
           headers: {
@@ -183,7 +181,7 @@ class CheckPageState extends State<CheckPage> {
     };
 
     return CreateDefaultMasterForm(
-        1,
+        2,
         new Center(
             child: new Column(children: <Widget>[
               new SizedBox(
@@ -244,7 +242,7 @@ class CheckPageState extends State<CheckPage> {
                     context,
                     MaterialPageRoute(
                         builder: (context) =>
-                            ManualEditPage(check_data, turnOnUpdate)));
+                            ManualEditDeliveryPage(check_data, turnOnUpdate)));
               }
             })
       ]),

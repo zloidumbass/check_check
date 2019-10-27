@@ -3,7 +3,7 @@ String User = '';
 String UserUID = '';
 String AuthorizationString = '';
 String FSM_token = '';
-bool EditingAllowed = false;
+bool Courier = false;
 
 //Версия
 String Version = '';

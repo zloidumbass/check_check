@@ -40,15 +40,12 @@ class RegistrationPageState extends State<RegistrationPage> {
                       height: 100.0,
                     ),
                   ),
-                  step == 0
-                      ? new TextFormField(
+                  new TextFormField(
                           controller: controller_full_login,
                           keyboardType: TextInputType.text,
                           decoration: new InputDecoration(labelText: 'ФИО'),
-                        )
-                      : Container(),
-                  step == 0
-                      ? new TextFormField(
+                        ),
+                  new TextFormField(
                           controller: controller_login,
                           keyboardType: TextInputType.phone,
                           decoration: new InputDecoration(labelText: 'Телефон'),
@@ -58,31 +55,13 @@ class RegistrationPageState extends State<RegistrationPage> {
                                   DecimalPhoneEditingRegexValidator(),
                             )
                           ],
-                        )
-                      : Container(),
-                  step > 0
-                      ? new TextFormField(
+                        ),
+                      new TextFormField(
                           controller: controller_password,
                           keyboardType: TextInputType.text,
                           decoration: new InputDecoration(labelText: 'Пароль'),
-                        )
-                      : Container(),
-                  step == 0
-                      ? new Container(
-                          decoration: new BoxDecoration(
-                              border: Border.all(color: Colors.black)),
-                          child: new ListTile(
-                            title: new Text(
-                              "Отправить сообщение",
-                              textAlign: TextAlign.center,
-                            ),
-                            onTap: this.submitMessage,
-                          ),
-                          margin: new EdgeInsets.only(top: 20.0),
-                        )
-                      : Container(),
-                  step > 0
-                      ? new Container(
+                        ),
+                  new Container(
                           decoration: new BoxDecoration(
                               border: Border.all(color: Colors.black)),
                           child: new ListTile(
@@ -93,104 +72,103 @@ class RegistrationPageState extends State<RegistrationPage> {
                             onTap: this.registration,
                           ),
                           margin: new EdgeInsets.only(top: 20.0),
-                        )
-                      : Container(),
+                        ),
                 ],
               ),
             )));
   }
 
   void submitMessage() async {
-    if (controller_login.text.length != 0) {
-      LoadingStart(context);
-      try {
-        //Регистрация пользователя в фнс
-        var response_fns = await http.post(
-            'https://proverkacheka.nalog.ru:9999/v1/mobile/users/signup',
-            headers: {
-              'content-type': 'application/json'
-            },
-            body:
-                '{"email":"some@mail.com","name":"${controller_full_login.text}","phone":"${controller_login.text}"}');
-        //Если успешно, то идём к шагу 2
-        if (response_fns.statusCode == 204) {
-          LoadingStop(context);
-          setState(() {
-            step = 1;
-          });
-          //Если код 409, значит пользователь есть в базе фнс, но есть ли он у нас?
-        } else if (response_fns.statusCode == 409) {
-          //Смотрим есть ли пользователь у нас в базе
-          var response_login = await http.get(
-              '${ServerUrlNoAuth}/hs/mobilecheckcheck/login?user=${controller_login.text}&check=true',
-              headers: {
-                'content-type': 'application/json',
-                'content-version': Version+'.'+BuildNumber
-              });
-          //Если есть то пишем, что пользователь существует
-          if (response_login.statusCode == 200) {
-            LoadingStop(context);
-            CreateshowDialog(
-                context,
-                new Text(
-                  "Пользователь уже существует",
-                  style: new TextStyle(fontSize: 16.0),
-                ));
-            //Если код 401 (не авторизован) то такого пользователя в базе нет
-          } else if (response_login.statusCode == 401) {
-            print("Response status: ${response_login.statusCode}");
-            print("Response body: ${response_login.body}");
-
-            //Делаем восстановление пароля, для присвоения его пользователю
-            var response = await http.post(
-                'https://proverkacheka.nalog.ru:9999/v1/mobile/users/restore',
-                headers: {'content-type': 'application/json'},
-                body: '{"phone":"${controller_login.text}"}');
-            if (response.statusCode == 204) {
-              LoadingStop(context);
-              setState(() {
-                step = 1;
-              });
-            } else {
-              LoadingStop(context);
-              print("Response status: ${response.statusCode}");
-              print("Response body: ${response.body}");
-              CreateshowDialog(
-                  context,
-                  new Text(
-                    response.body,
-                    style: new TextStyle(fontSize: 16.0),
-                  ));
-            }
-          }
-        } else {
-          LoadingStop(context);
-          print("Response status: ${response_fns.statusCode}");
-          print("Response body: ${response_fns.body}");
-          CreateshowDialog(
-              context,
-              new Text(
-                response_fns.body,
-                style: new TextStyle(fontSize: 16.0),
-              ));
-        }
-      } catch (error) {
-        LoadingStop(context);
-        print(error.toString());
-        CreateshowDialog(
-            context,
-            new Text(
-              'Ошибка соединения с сервером',
-              style: new TextStyle(fontSize: 16.0),
-            ));
-      }
-      ;
-    } else {
-      CreateshowDialog(
-          context,
-          new Text("Телефон не может быть пустым",
-              style: new TextStyle(fontSize: 16.0)));
-    }
+//    if (controller_login.text.length != 0) {
+//      LoadingStart(context);
+//      try {
+//        //Регистрация пользователя в фнс
+//        var response_fns = await http.post(
+//            'https://proverkacheka.nalog.ru:9999/v1/mobile/users/signup',
+//            headers: {
+//              'content-type': 'application/json'
+//            },
+//            body:
+//                '{"email":"some@mail.com","name":"${controller_full_login.text}","phone":"${controller_login.text}"}');
+//        //Если успешно, то идём к шагу 2
+//        if (response_fns.statusCode == 204) {
+//          LoadingStop(context);
+//          setState(() {
+//            step = 1;
+//          });
+//          //Если код 409, значит пользователь есть в базе фнс, но есть ли он у нас?
+//        } else if (response_fns.statusCode == 409) {
+//          //Смотрим есть ли пользователь у нас в базе
+//          var response_login = await http.get(
+//              '${ServerUrlNoAuth}/hs/mobilecheckcheck/login?user=${controller_login.text}&check=true',
+//              headers: {
+//                'content-type': 'application/json',
+//                'content-version': Version+'.'+BuildNumber
+//              });
+//          //Если есть то пишем, что пользователь существует
+//          if (response_login.statusCode == 200) {
+//            LoadingStop(context);
+//            CreateshowDialog(
+//                context,
+//                new Text(
+//                  "Пользователь уже существует",
+//                  style: new TextStyle(fontSize: 16.0),
+//                ));
+//            //Если код 401 (не авторизован) то такого пользователя в базе нет
+//          } else if (response_login.statusCode == 401) {
+//            print("Response status: ${response_login.statusCode}");
+//            print("Response body: ${response_login.body}");
+//
+//            //Делаем восстановление пароля, для присвоения его пользователю
+//            var response = await http.post(
+//                'https://proverkacheka.nalog.ru:9999/v1/mobile/users/restore',
+//                headers: {'content-type': 'application/json'},
+//                body: '{"phone":"${controller_login.text}"}');
+//            if (response.statusCode == 204) {
+//              LoadingStop(context);
+//              setState(() {
+//                step = 1;
+//              });
+//            } else {
+//              LoadingStop(context);
+//              print("Response status: ${response.statusCode}");
+//              print("Response body: ${response.body}");
+//              CreateshowDialog(
+//                  context,
+//                  new Text(
+//                    response.body,
+//                    style: new TextStyle(fontSize: 16.0),
+//                  ));
+//            }
+//          }
+//        } else {
+//          LoadingStop(context);
+//          print("Response status: ${response_fns.statusCode}");
+//          print("Response body: ${response_fns.body}");
+//          CreateshowDialog(
+//              context,
+//              new Text(
+//                response_fns.body,
+//                style: new TextStyle(fontSize: 16.0),
+//              ));
+//        }
+//      } catch (error) {
+//        LoadingStop(context);
+//        print(error.toString());
+//        CreateshowDialog(
+//            context,
+//            new Text(
+//              'Ошибка соединения с сервером',
+//              style: new TextStyle(fontSize: 16.0),
+//            ));
+//      }
+//      ;
+//    } else {
+//      CreateshowDialog(
+//          context,
+//          new Text("Телефон не может быть пустым",
+//              style: new TextStyle(fontSize: 16.0)));
+//    }
   }
 
   void registration() async {

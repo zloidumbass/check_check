@@ -5,6 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:check_check/forms/login.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:package_info/package_info.dart';
+import 'package:flutter_background_location/flutter_background_location.dart';
+import 'package:http/http.dart' as http;
+
+import 'data/static_variable.dart';
 
 void main() => runApp(MyApp());
 
@@ -36,8 +40,19 @@ class MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
+    FlutterBackgroundLocation.startLocationService();
+    FlutterBackgroundLocation.getLocationUpdates((location) {
+      if(UserUID.isNotEmpty) {
+
+        SetGeoData(location);
+        print(
+            location.latitude.toString() + ' ' + location.longitude.toString());
+      }
+    });
     FSM();
+    GetVersion();
   }
+
 
   void FSM() async{
     _firebaseMessaging.configure(
@@ -65,6 +80,17 @@ class MyAppState extends State<MyApp> {
     PackageInfo packageInfo = await PackageInfo.fromPlatform();
     Version = packageInfo.version;
     BuildNumber = packageInfo.buildNumber;
+  }
+
+  void SetGeoData(location) async{
+    var response = await http.post(
+        '${ServerUrl}/hs/mobilecheckcheck/geodata?user=${UserUID}&latitude=${location.latitude}&longitude=${location.longitude}',
+        headers: {
+          'content-type': 'application/json',
+          'Authorization': 'Basic ${AuthorizationString}',
+          'content-version': Version+'.'+BuildNumber
+        });
+    print(response.statusCode);
   }
 
   @override

@@ -1,29 +1,25 @@
-import 'dart:convert';
-
 import 'package:check_check/data/static_variable.dart';
 import 'package:check_check/data/session_options.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
-import 'package:check_check/forms/checks.dart';
+import 'package:check_check/forms/delivery.dart';
 import 'package:check_check/module_common.dart';
 
 //Класс инициализации
-class ManualEditPage extends StatefulWidget {
+class ManualEditDeliveryPage extends StatefulWidget {
   Function callback;
   final CheckData value;
 
-  ManualEditPage(this.value, this.callback);
+  ManualEditDeliveryPage(this.value, this.callback);
 
   @override
-  ManualEditPageState createState() => ManualEditPageState();
+  ManualEditDeliveryPageState createState() => ManualEditDeliveryPageState();
 }
 
-class ManualEditPageState extends State<ManualEditPage> {
+class ManualEditDeliveryPageState extends State<ManualEditDeliveryPage> {
   bool update = true;
   bool verified = false;
-
 
   @override
   void dispose() {
@@ -36,7 +32,7 @@ class ManualEditPageState extends State<ManualEditPage> {
     LoadingStart(context);
     try {
       String json_body =
-          '{"type":"edit","UID":"${widget.value.UID}","verified":${verified},"list_view":false}';
+          '{"type":"edit","UID":"${widget.value.UID}","verified":${verified},"list_view":true}';
       var response = await http.post(
           '${ServerUrl}/hs/mobilecheckcheck/addrecordqr',
           body: json_body,
@@ -214,36 +210,11 @@ class ManualEditPageState extends State<ManualEditPage> {
                   decoration: new BoxDecoration(
                       border: Border.all(color: Colors.black)),
                   child: new ListTile(
-                    enabled: widget.value.status == 'В работе',
                     title: new Text(
-                      'Показать курьера',
+                      'В работу',
                       textAlign: TextAlign.center,
                     ),
-                    onTap: this.getCour,
-                  ),
-                  margin: new EdgeInsets.only(top: 20.0),
-                ),
-                new Container(
-                  decoration: new BoxDecoration(
-                      border: Border.all(color: Colors.black)),
-                  child: new ListTile(
-                    title: new Text(
-                      'Отменить',
-                      textAlign: TextAlign.center,
-                    ),
-                    onTap: this.cancelCheck,
-                  ),
-                  margin: new EdgeInsets.only(top: 20.0),
-                ),
-                new Container(
-                  decoration: new BoxDecoration(
-                      border: Border.all(color: Colors.black)),
-                  child: new ListTile(
-                    title: new Text(
-                      'Принять',
-                      textAlign: TextAlign.center,
-                    ),
-                    onTap: this.verifiedCheck,
+                    onTap: this.saveCheks,
                   ),
                   margin: new EdgeInsets.only(top: 20.0),
                 )
@@ -251,66 +222,5 @@ class ManualEditPageState extends State<ManualEditPage> {
             ),
           )),
     );
-
   }
-
-  verifiedCheck() async {
-    verified = true;
-    saveCheks();
-  }
-
-  cancelCheck() async {
-    verified = false;
-    saveCheks();
-  }
-
-  GoogleMapController mapController;
-
-  void _onMapCreated(GoogleMapController controller) {
-    mapController = controller;
-  }
-
-  getCour() async {
-
-    final jsonEndpoint = '${ServerUrl}/hs/mobilecheckcheck/geodata?courier=${widget.value.courier}';
-    print(jsonEndpoint);
-    try {
-      final response = await http.get(jsonEndpoint,
-          headers: {
-            'Authorization': 'Basic ${AuthorizationString}',
-            'content-version': Version+'.'+BuildNumber
-          });
-      if (response.statusCode == 200) {
-        List geo_data = json.decode(response.body);
-        if(geo_data.length == 1){
-          showDialog(
-              context: context,
-              builder: (BuildContext context) {
-                return GoogleMap(
-                  onMapCreated: _onMapCreated,
-                  initialCameraPosition: CameraPosition(
-                    target: LatLng(geo_data[0]['Широта'], geo_data[0]['Долгота']),
-                    zoom: 18.0,
-                  ),
-                  markers: {
-                    Marker(
-                      markerId: MarkerId('courier'),
-                      position: LatLng(geo_data[0]['Широта'], geo_data[0]['Долгота']),
-                      infoWindow: InfoWindow(title: 'Курьер'),
-                      icon: BitmapDescriptor.defaultMarkerWithHue(
-                        BitmapDescriptor.hueViolet,
-                      ),
-                    )
-                  },);
-              });
-        }
-
-      } else
-        print(response.body);
-    } catch (error) {
-      print(error.toString());
-    }
-  }
-
-
 }

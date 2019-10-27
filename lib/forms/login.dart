@@ -162,7 +162,7 @@ class _LoginPageState extends State<LoginPage> {
           User = json_response['user'];
           UserUID = json_response['user_uid'];
           UserPhone = username.text;
-          EditingAllowed = json_response['editing_allowed'];
+          Courier = json_response['courier'];
           AuthorizationString = Authorization;
         } else {
           LoadingStop(context);

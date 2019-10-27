@@ -1,15 +1,10 @@
-import 'dart:convert';
-import 'dart:io';
-import 'package:barcode_scan/barcode_scan.dart';
 import 'package:check_check/data/static_variable.dart';
 import 'package:check_check/data/session_options.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/services.dart';
-import 'package:check_check/validator.dart';
 import 'package:check_check/module_common.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 
 //Форма ручного ввода
@@ -40,10 +35,9 @@ class _ManualInputPageState extends State<ManualInputPage> {
   //Переменные формы
   final controller_date = TextEditingController();
   final controller_time = TextEditingController();
-  final controller_s = TextEditingController();
-  final controller_fn = TextEditingController();
-  final controller_fd = TextEditingController();
-  final controller_fpd = TextEditingController();
+  final controller_addres_to = TextEditingController();
+  final controller_addres_do = TextEditingController();
+  final controller_comment = TextEditingController();
 
   //При выборе даты
   Future<Null> _selectDate(BuildContext context) async {
@@ -96,50 +90,6 @@ class _ManualInputPageState extends State<ManualInputPage> {
     return numberstring;
   }
 
-  //При выборе картинки
-  Future getImage() async {
-    try {
-      var image = await ImagePicker.pickImage(source: ImageSource.camera);
-      setState(() {
-        print(image.path);
-        image_path = image.path;
-      });
-    } catch (error) {}
-  }
-
-  //При открытии картинки
-  Future openImage() async {
-    showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return new Container(
-              padding: new EdgeInsets.all(20.0),
-              child: new Form(
-                  child: new ListView(
-                children: <Widget>[
-                  new Container(
-                      decoration: new BoxDecoration(
-                          border: Border.all(color: Colors.black)),
-                      child: Image.file(File(image_path))),
-                  new Container(
-                    decoration: new BoxDecoration(
-                        color: Colors.white,
-                        border: Border.all(color: Colors.black)),
-                    child: new FlatButton(
-                      child: new Text(
-                        "Назад",
-                        textAlign: TextAlign.center,
-                      ),
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
-                    ),
-                  )
-                ],
-              )));
-        });
-  }
-
   //отправка данных
   submit() async {
     String imageBase64 = "";
@@ -152,31 +102,11 @@ class _ManualInputPageState extends State<ManualInputPage> {
       return;
     }
     ;
-    if (_validateRequiredField(controller_fn.text, 'ФН')) {
+    if (_validateRequiredField(controller_addres_to.text, 'Адрес A')) {
       return;
     }
     ;
-    if (_validateRequiredField(controller_fd.text, 'ФД')) {
-      return;
-    }
-    ;
-    if (_validateRequiredField(controller_fpd.text, 'ФПД.')) {
-      return;
-    }
-    ;
-    if (_validateRequiredField(controller_s.text, 'Сумма')) {
-      return;
-    }
-    ;
-    try {
-      imageBase64 = base64Encode(File(image_path).readAsBytesSync());
-    } catch (error) {
-      CreateshowDialog(
-          context,
-          new Text(
-            'Фотография чека отсутствует',
-            style: new TextStyle(fontSize: 16.0),
-          ));
+    if (_validateRequiredField(controller_addres_do.text, 'Адрес B')) {
       return;
     }
     ;
@@ -188,7 +118,7 @@ class _ManualInputPageState extends State<ManualInputPage> {
       var response = await http.post(
           '${ServerUrl}/hs/mobilecheckcheck/addrecordqr',
           body:
-              '{"type":"add","user":"${UserUID}","datetime":"${formatter_send.format(formatter_datetime)}","s":"${controller_s.text}","fn":"${controller_fn.text}","fd":"${controller_fd.text}","fpd":"${controller_fpd.text}","photo_check":"${imageBase64}"}',
+              '{"type":"add","user":"${UserUID}","datetime":"${formatter_send.format(formatter_datetime)}","addres_to":"${controller_addres_to.text}","addres_do":"${controller_addres_do.text}","comment":"${controller_comment.text}"}',
           headers: {
             'content-type': 'application/json',
             'Authorization': 'Basic ${AuthorizationString}',
@@ -222,46 +152,6 @@ class _ManualInputPageState extends State<ManualInputPage> {
     ;
   }
 
-  //инициализация сканера
-  Future _scanQR() async {
-    try {
-      String qrResult = await BarcodeScanner.scan();
-      setState(() {
-        result_scan = "Успешно";
-        var ArrayData = qrResult.split('&');
-        var DateTime_String = ArrayData[0].replaceAll('t=', '');
-        _date = DateTime.parse(DateTime_String);
-        _time = new TimeOfDay(hour: _date.hour, minute: _date.minute);
-
-        controller_date.text = formatter.format(_date);
-        controller_time.text = _time.format(context);
-
-        controller_s.text = ArrayData[1].replaceAll('s=', '');
-        controller_fn.text = ArrayData[2].replaceAll('fn=', '');
-        controller_fd.text = ArrayData[3].replaceAll('i=', '');
-        controller_fpd.text = ArrayData[4].replaceAll('fp=', '');
-      });
-    } on PlatformException catch (ex) {
-      if (ex.code == BarcodeScanner.CameraAccessDenied) {
-        setState(() {
-          result_scan = "Разрешение к камере не получено";
-        });
-      } else {
-        setState(() {
-          result_scan = "Неизвестная ошибка $ex";
-        });
-      }
-    } on FormatException {
-      setState(() {
-        result_scan = "Вы нажали кнопку назад, прежде чем сканировать что-либо";
-      });
-    } catch (ex) {
-      setState(() {
-        result_scan = "Неизвестная ошибка $ex";
-      });
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     if (image_path != "") {
@@ -273,7 +163,7 @@ class _ManualInputPageState extends State<ManualInputPage> {
 
     return new Scaffold(
       appBar: new AppBar(
-        title: new Text('Отправка чека'),
+        title: new Text('Формирование заказа'),
       ),
       body: new Container(
           padding: new EdgeInsets.all(20.0),
@@ -311,72 +201,25 @@ class _ManualInputPageState extends State<ManualInputPage> {
                           ))),
                 ]),
                 new TextFormField(
-                  controller: controller_s,
-                  keyboardType: TextInputType.number,
-                  decoration: new InputDecoration(labelText: 'Сумма'),
-                  inputFormatters: [
-                    ValidatorInputFormatter(
-                      editingValidator: DecimalNumberEditingRegexValidator(),
-                    )
-                  ],
+                  controller: controller_addres_to,
+                  maxLines: null,
+                  maxLength: 1000,
+                  keyboardType: TextInputType.text,
+                  decoration: new InputDecoration(labelText: 'Адрес A'),
                 ),
                 new TextFormField(
-                  controller: controller_fn,
-                  maxLength: 16,
-                  keyboardType: TextInputType.number,
-                  decoration: new InputDecoration(labelText: 'ФН'),
-                  inputFormatters: <TextInputFormatter>[
-                    WhitelistingTextInputFormatter(RegExp(r"(\w+)")),
-                  ],
+                  controller: controller_addres_do,
+                  maxLines: null,
+                  maxLength: 1000,
+                  keyboardType: TextInputType.text,
+                  decoration: new InputDecoration(labelText: 'Адрес B'),
                 ),
                 new TextFormField(
-                  controller: controller_fd,
-                  maxLength: 10,
-                  keyboardType: TextInputType.number,
-                  decoration: new InputDecoration(labelText: 'ФД'),
-                  inputFormatters: <TextInputFormatter>[
-                    WhitelistingTextInputFormatter(RegExp(r"(\w+)")),
-                  ],
-                ),
-                new TextFormField(
-                  controller: controller_fpd,
-                  maxLength: 10,
-                  keyboardType: TextInputType.number,
-                  decoration: new InputDecoration(labelText: 'ФПД'),
-                  inputFormatters: <TextInputFormatter>[
-                    WhitelistingTextInputFormatter(RegExp(r"(\w+)")),
-                  ],
-                ),
-                Row(children: <Widget>[
-                  Expanded(child: icon_photo),
-                  Expanded(
-                    child: new Container(
-                        height: MediaQuery.of(context).size.height * 0.05,
-                        child: new FlatButton(
-                          onPressed: this.getImage,
-                          child: PhotoCheck,
-                        )),
-                  ),
-                  Expanded(
-                    child: new Container(
-                        height: MediaQuery.of(context).size.height * 0.05,
-                        child: new FlatButton(
-                          onPressed: image_path != "" ? this.openImage : null,
-                          child: Text('Показать'),
-                        )),
-                  ),
-                ]),
-                new Container(
-                  decoration: new BoxDecoration(
-                      border: Border.all(color: Colors.black)),
-                  child: new ListTile(
-                    title: new Text(
-                      "Сканер",
-                      textAlign: TextAlign.center,
-                    ),
-                    onTap: this._scanQR,
-                  ),
-                  margin: new EdgeInsets.only(top: 20.0),
+                  controller: controller_comment,
+                  maxLines: null,
+                  maxLength: 1000,
+                  keyboardType: TextInputType.text,
+                  decoration: new InputDecoration(labelText: 'Комментарий'),
                 ),
                 new Container(
                   decoration: new BoxDecoration(
